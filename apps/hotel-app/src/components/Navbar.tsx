@@ -16,7 +16,7 @@ const Header = styled.header`
   align-items: center;
 `;
 
-const NavLink = styled.a<{ $active?: boolean }>`
+const NavLink = styled(Link) <{ $active?: boolean }>`
   background-color: ${(props) => (props.$active ? "#4CAF50" : "transparent")};
   color: ${(props) => (props.$active ? "white" : "#6b7280")};
   padding: 8px 16px;
@@ -35,7 +35,7 @@ const NavLink = styled.a<{ $active?: boolean }>`
   }
 `;
 
-const ActionButton = styled.button<{ $variant?: "primary" | "outline" }>`
+const ActionButton = styled(Link) <{ $variant?: "primary" | "outline" }>`
   padding: 8px 24px;
   border-radius: 4px;
   font-weight: 500;
@@ -48,6 +48,8 @@ const ActionButton = styled.button<{ $variant?: "primary" | "outline" }>`
   text-transform: ${(props) => (props.$variant === "outline" ? "uppercase" : "none")};
   letter-spacing: ${(props) => (props.$variant === "outline" ? "0.1em" : "normal")};
   white-space: nowrap;
+  text-decoration: none;
+  display: inline-block;
   
   cursor: pointer;
 
@@ -63,7 +65,7 @@ export default function Navbar() {
             <Container fluid>
                 <Row align="center" justify="between" style={{ height: '100%' }}>
                     <Col xs={6} md={4}>
-                        <Link href="/" passHref style={{ textDecoration: 'none' }}>
+                        <Link href="/" style={{ textDecoration: 'none' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
                                 <Building2 size={32} color="#4b5563" />
                                 <span style={{ color: '#4b5563', fontWeight: 500, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
@@ -76,20 +78,14 @@ export default function Navbar() {
                     <Col xs={6} md={8}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '32px' }}>
                             <nav style={{ display: 'flex', gap: '32px', alignItems: 'center' }} className="hidden md:flex">
-                                <Link href="/" passHref legacyBehavior>
-                                    <NavLink>HOME</NavLink>
-                                </Link>
+                                <NavLink href="/">HOME</NavLink>
                                 <NavLink href="#">Room</NavLink>
                                 <NavLink href="#">Service & Facilities</NavLink>
                             </nav>
 
                             <div style={{ display: 'flex', gap: '12px' }}>
-                                <Link href="/signin">
-                                    <ActionButton>Sign in</ActionButton>
-                                </Link>
-                                <Link href="/register">
-                                    <ActionButton>Register</ActionButton>
-                                </Link>
+                                <ActionButton href="/signin">Sign in</ActionButton>
+                                <ActionButton href="/register">Register</ActionButton>
                             </div>
                         </div>
                     </Col>

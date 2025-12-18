@@ -1,5 +1,6 @@
 import Head from "next/head";
 import styled from "styled-components";
+import Image from "next/image";
 import { Container, Row, Col, ScreenClassProvider } from "react-grid-system";
 import Navbar from "../components/Navbar";
 
@@ -183,62 +184,62 @@ const RegisterText = styled.p`
 `;
 
 export default function SignIn() {
-    return (
-        <ScreenClassProvider>
-            <Head>
-                <title>Sign In | Hotel Reservations System</title>
-                <meta name="description" content="Sign In to your account" />
-            </Head>
+  return (
+    <ScreenClassProvider>
+      <Head>
+        <title>Sign In | Hotel Reservations System</title>
+        <meta name="description" content="Sign In to your account" />
+      </Head>
 
-            <Navbar />
+      <Navbar />
 
-            <PageWrapper>
-                <Container>
-                    <SignInCard>
-                        <Row align="center">
-                            {/* Left Side - Images */}
-                            <Col md={6} lg={6} className="hidden md:block">
-                                <ImageContainer>
-                                    <PatioImage>
-                                        <img src="/signin-patio.png" alt="Hotel Patio" />
-                                    </PatioImage>
-                                    <BedroomImage>
-                                        <img src="/signin-bedroom.png" alt="Hotel Bedroom" />
-                                    </BedroomImage>
-                                </ImageContainer>
-                            </Col>
+      <PageWrapper>
+        <Container>
+          <SignInCard>
+            <Row align="center">
+              {/* Left Side - Images */}
+              <Col md={6} lg={6} className="hidden md:block">
+                <ImageContainer>
+                  <PatioImage>
+                    <Image src="/signin-patio.png" alt="Hotel Patio" fill style={{ objectFit: "cover" }} />
+                  </PatioImage>
+                  <BedroomImage>
+                    <Image src="/signin-bedroom.png" alt="Hotel Bedroom" fill style={{ objectFit: "cover" }} />
+                  </BedroomImage>
+                </ImageContainer>
+              </Col>
 
-                            {/* Right Side - Form */}
-                            <Col md={6} lg={6}>
-                                <FormContainer>
-                                    <WelcomeText>Welcome to HOTEL RESERVATIONS SYSTEM</WelcomeText>
-                                    <SubText>Sign In to your account</SubText>
+              {/* Right Side - Form */}
+              <Col md={6} lg={6}>
+                <FormContainer>
+                  <WelcomeText>Welcome to HOTEL RESERVATIONS SYSTEM</WelcomeText>
+                  <SubText>Sign In to your account</SubText>
 
-                                    <form>
-                                        <FormGroup>
-                                            <Label>Email</Label>
-                                            <Input type="email" placeholder="Enter your Email" />
-                                        </FormGroup>
+                  <form>
+                    <FormGroup>
+                      <Label>Email</Label>
+                      <Input type="email" placeholder="Enter your Email" />
+                    </FormGroup>
 
-                                        <FormGroup>
-                                            <Label>Password</Label>
-                                            <Input type="password" placeholder="Enter your Password" />
-                                        </FormGroup>
+                    <FormGroup>
+                      <Label>Password</Label>
+                      <Input type="password" placeholder="Enter your Password" />
+                    </FormGroup>
 
-                                        <ForgotPasswordLink href="#">Forgot password?</ForgotPasswordLink>
+                    <ForgotPasswordLink href="#">Forgot password?</ForgotPasswordLink>
 
-                                        <SignInButton type="submit">Sign In</SignInButton>
+                    <SignInButton type="submit">Sign In</SignInButton>
 
-                                        <RegisterText>
-                                            Don't have an account ? <span>Register</span>
-                                        </RegisterText>
-                                    </form>
-                                </FormContainer>
-                            </Col>
-                        </Row>
-                    </SignInCard>
-                </Container>
-            </PageWrapper>
-        </ScreenClassProvider>
-    );
+                    <RegisterText>
+                      {"Don't have an account ?"} <span>Register</span>
+                    </RegisterText>
+                  </form>
+                </FormContainer>
+              </Col>
+            </Row>
+          </SignInCard>
+        </Container>
+      </PageWrapper>
+    </ScreenClassProvider>
+  );
 }

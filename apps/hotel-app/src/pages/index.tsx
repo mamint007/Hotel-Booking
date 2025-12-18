@@ -1,6 +1,7 @@
 import Head from "next/head";
+import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Calendar, Users, User } from "lucide-react";
+import { Calendar, User } from "lucide-react";
 import styled, { createGlobalStyle } from "styled-components";
 import { Container, Row, Col, ScreenClassProvider } from "react-grid-system";
 import Navbar from "../components/Navbar";
@@ -308,9 +309,12 @@ export default function Home() {
         {/* Hero Section */}
         <HeroSection>
           <HeroBackground>
-            <img
+            <Image
               src="/hero-image.png"
               alt="Hotel Facade"
+              fill
+              style={{ objectFit: "cover" }}
+              priority
             />
           </HeroBackground>
 
@@ -399,9 +403,11 @@ export default function Home() {
               <Col md={6}>
                 <ImageFrame>
                   <AboutImage>
-                    <img
+                    <Image
                       src="/hero-image.png"
                       alt="Relaxing Pool View"
+                      fill
+                      style={{ objectFit: "cover" }}
                     />
                   </AboutImage>
                 </ImageFrame>
