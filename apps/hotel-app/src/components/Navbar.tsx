@@ -94,7 +94,7 @@ export default function Navbar() {
 
                     <ActionGroup>
                         <Link href="/signin">
-                            <ActionButton outline>Sign in</ActionButton>
+                            <ActionButton >Sign in</ActionButton>
                         </Link>
                         <Link href="/register">
                             <ActionButton>Register</ActionButton>

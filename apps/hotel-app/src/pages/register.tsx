@@ -166,8 +166,6 @@ const LoginText = styled.p`
 
 export default function Register() {
   return (
-    <main className={poppins.className}>
-      <GlobalStyle />
       <ScreenClassProvider>
         <Head>
           <title>Create Account | Hotel Reservations System</title>
@@ -244,6 +242,5 @@ export default function Register() {
           </RegisterCard>
         </PageWrapper>
       </ScreenClassProvider>
-    </main>
   );
 } 
