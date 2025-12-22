@@ -35,26 +35,27 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 const ActionButton = styled.button<{ $variant?: "primary" | "outline" }>`
-  padding: 8px 24px;
-  border-radius: 4px;
-  font-weight: 500;
-  transition: all 0.2s;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  padding: 14px 40px;
+  border-radius: 9999px;
+  font-weight: 700;
+  transition: all 0.25s ease;
+  box-shadow: ${(props) => (props.$variant === "outline" ? "0 8px 24px rgba(0,0,0,0.16)" : "0 6px 18px rgba(67,160,71,0.18)")};
   background-color: ${(props) => (props.$variant === "outline" ? "transparent" : "#4CAF50")};
   color: ${(props) => (props.$variant === "outline" ? "white" : "white")};
-  border: ${(props) => (props.$variant === "outline" ? "1px solid white" : "none")};
-  font-size: ${(props) => (props.$variant === "outline" ? "12px" : "14px")};
+  border: ${(props) => (props.$variant === "outline" ? "2px solid #FFFFFF" : "none")};
+  font-size: 14px;
   text-transform: ${(props) => (props.$variant === "outline" ? "uppercase" : "none")};
   letter-spacing: ${(props) => (props.$variant === "outline" ? "0.1em" : "normal")};
   white-space: nowrap;
-  
   cursor: pointer;
 
   &:hover {
     background-color: ${(props) => (props.$variant === "outline" ? "white" : "#43A047")};
     color: ${(props) => (props.$variant === "outline" ? "#4CAF50" : "white")};
+    transform: translateY(-2px);
   }
 `;
+
 
 const HeroSection = styled.section`
   position: relative;
@@ -96,7 +97,6 @@ const HeroContent = styled.div`
 const WelcomeTitle = styled.h1`
   font-size: 3rem;
   font-weight: 800;
-  margin-bottom: 1rem;
   text-shadow: 0 4px 6px rgba(0,0,0,0.1);
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -119,7 +119,7 @@ const WelcomeTitle = styled.h1`
 `; */
 
 const SubTitle = styled.h2`
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 500;
   letter-spacing: 0.2em;
   margin-bottom: 2rem;
@@ -328,7 +328,7 @@ export default function Home() {
                 <BookingTitle>Reservations</BookingTitle>
               </Col>
 
-              <Col md={12} lg={8} style={{ paddingLeft: 0, paddingRight: 0 }}>
+              <Col md={12} lg={8} style={{ paddingLeft: 0, paddingRight: 0, display: "flex", gap: "30px" }}>
                 <FilterContainer>
                   {/* Check In */}
                   <FilterItem $borderRight>
@@ -349,8 +349,10 @@ export default function Home() {
                       <FilterSubValue>Thursday</FilterSubValue>
                     </div>
                   </FilterItem>
+                  </FilterContainer>
 
-                  {/* Adults */}
+                  <FilterContainer>
+                   {/* Adults */}
                   <FilterItem $borderRight>
                     <User size={20} color="#9ca3af" />
                     <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
@@ -375,7 +377,8 @@ export default function Home() {
                       </StyledSelect>
                     </div>
                   </FilterItem>
-                </FilterContainer>
+                  </FilterContainer>
+                 
               </Col>
 
               <Col md={20} lg={2}>
