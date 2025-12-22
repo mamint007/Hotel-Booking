@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { Container, Row, Col } from "react-grid-system";
+//import { Container, Row, Col } from "react-grid-system";
 import { Building2 } from "lucide-react";
 import Link from "next/link";
 
@@ -7,90 +7,101 @@ const Header = styled.header`
   position: fixed;
   top: 0;
   width: 100%;
-  z-index: 50;
-  background-color: white;
-  border-bottom: 1px solid #f3f4f6;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
   height: 80px;
-  display: flex;
-  align-items: center;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  z-index: 50;
 `;
 
-const NavLink = styled(Link) <{ $active?: boolean }>`
-  background-color: ${(props) => (props.$active ? "#4CAF50" : "transparent")};
-  color: ${(props) => (props.$active ? "white" : "#6b7280")};
-  padding: 8px 16px;
-  border-radius: 4px;
+const NavContainer = styled.div`
+  width: 100%;
+  height: 100%;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+
+
+const NavMenu = styled.nav`
+  display: flex;
+  gap: 20px;
+`;
+
+const NavLink = styled.a`
   font-size: 14px;
   font-weight: 500;
-  transition: all 0.2s;
-  text-transform: uppercase;
+  color: #6b7280;
   letter-spacing: 0.05em;
+  text-transform: uppercase;
   cursor: pointer;
   text-decoration: none;
 
   &:hover {
-    background-color: ${(props) => (props.$active ? "#43A047" : "transparent")};
-    color: ${(props) => (props.$active ? "white" : "#4CAF50")};
+    color: #4CAF50;
   }
 `;
 
-const ActionButton = styled(Link) <{ $variant?: "primary" | "outline" }>`
-  padding: 8px 24px;
-  border-radius: 4px;
+const ActionGroup = styled.div`
+  display: flex;
+  gap: 12px;
+`;
+
+const RightGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 24px; /* ระยะระหว่าง menu กับปุ่ม */
+`;
+
+const ActionButton = styled.button<{ outline?: boolean }>`
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 14px;
   font-weight: 500;
-  transition: all 0.2s;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  background-color: ${(props) => (props.$variant === "outline" ? "transparent" : "#4CAF50")};
-  color: ${(props) => (props.$variant === "outline" ? "white" : "white")};
-  border: ${(props) => (props.$variant === "outline" ? "1px solid white" : "none")};
-  font-size: ${(props) => (props.$variant === "outline" ? "12px" : "14px")};
-  text-transform: ${(props) => (props.$variant === "outline" ? "uppercase" : "none")};
-  letter-spacing: ${(props) => (props.$variant === "outline" ? "0.1em" : "normal")};
-  white-space: nowrap;
-  text-decoration: none;
-  display: inline-block;
-  
   cursor: pointer;
+  border: ${(p) => (p.outline ? "1px solid #4CAF50" : "none")};
+  background: ${(p) => (p.outline ? "transparent" : "#4CAF50")};
+  color: ${(p) => (p.outline ? "#4CAF50" : "white")};
 
   &:hover {
-    background-color: ${(props) => (props.$variant === "outline" ? "white" : "#43A047")};
-    color: ${(props) => (props.$variant === "outline" ? "#4CAF50" : "white")};
+    background: #43A047;
+    color: white;
   }
 `;
 
 export default function Navbar() {
     return (
         <Header>
-            <Container fluid>
-                <Row align="center" justify="between" style={{ height: '100%' }}>
-                    <Col xs={6} md={4}>
-                        <Link href="/" style={{ textDecoration: 'none' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-                                <Building2 size={32} color="#4b5563" />
-                                <span style={{ color: '#4b5563', fontWeight: 500, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
-                                    HOTEL RESERVATIONS SYSTEM
-                                </span>
-                            </div>
+            <NavContainer>
+                {/* LOGO */}
+                <Link href="/" style={{ textDecoration: "none" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <Building2 size={24} color="#4b5563" />
+                        <span style={{ fontSize: 14 }}>
+                            HOTEL RESERVATIONS SYSTEM
+                        </span>
+                    </div>
+                </Link>
+
+                {/* RIGHT SIDE */}
+                <RightGroup>
+                    <NavMenu>
+                        <NavLink href="/">HOME</NavLink>
+                        <NavLink href="#">ROOM</NavLink>
+                        <NavLink href="#">SERVICE & FACILITIES</NavLink>
+                    </NavMenu>
+
+                    <ActionGroup>
+                        <Link href="/signin">
+                            <ActionButton outline>Sign in</ActionButton>
                         </Link>
-                    </Col>
-
-                    <Col xs={6} md={8}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '32px' }}>
-                            <nav style={{ display: 'flex', gap: '32px', alignItems: 'center' }} className="hidden md:flex">
-                                <NavLink href="/">HOME</NavLink>
-                                <NavLink href="#">Room</NavLink>
-                                <NavLink href="#">Service & Facilities</NavLink>
-                            </nav>
-
-                            <div style={{ display: 'flex', gap: '12px' }}>
-                                <ActionButton href="/signin">Sign in</ActionButton>
-                                <ActionButton href="/register">Register</ActionButton>
-                            </div>
-                        </div>
-                    </Col>
-                </Row>
-            </Container>
+                        <Link href="/register">
+                            <ActionButton>Register</ActionButton>
+                        </Link>
+                    </ActionGroup>
+                </RightGroup>
+            </NavContainer>
         </Header>
     );
 }

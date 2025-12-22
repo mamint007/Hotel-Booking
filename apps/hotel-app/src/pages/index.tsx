@@ -320,7 +320,7 @@ export default function Home() {
 
           <HeroContent>
             <WelcomeTitle>Welcome To</WelcomeTitle>
-            <HotelNameBadge>HOTEL NAME HERE</HotelNameBadge>
+            {/* <HotelNameBadge>HOTEL NAME HERE</HotelNameBadge> */}
             <SubTitle>HOTEL RESERVATIONS SYSTEM</SubTitle>
             <ActionButton $variant="outline" style={{ fontSize: '14px', padding: '12px 32px' }}>
               Book Room
