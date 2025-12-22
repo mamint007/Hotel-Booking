@@ -1,7 +1,6 @@
 import Head from "next/head";
-import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Calendar, User } from "lucide-react";
+import { Calendar, Users, User } from "lucide-react";
 import styled, { createGlobalStyle } from "styled-components";
 import { Container, Row, Col, ScreenClassProvider } from "react-grid-system";
 import Navbar from "../components/Navbar";
@@ -96,7 +95,7 @@ const HeroContent = styled.div`
 
 const WelcomeTitle = styled.h1`
   font-size: 3rem;
-  font-weight: bold;
+  font-weight: 800;
   margin-bottom: 1rem;
   text-shadow: 0 4px 6px rgba(0,0,0,0.1);
   letter-spacing: 0.05em;
@@ -107,7 +106,7 @@ const WelcomeTitle = styled.h1`
   }
 `;
 
-const HotelNameBadge = styled.div`
+/* const HotelNameBadge = styled.div`
   display: inline-block;
   background-color: rgba(108, 117, 125, 0.8);
   backdrop-filter: blur(4px);
@@ -117,18 +116,14 @@ const HotelNameBadge = styled.div`
   font-weight: 600;
   letter-spacing: 0.05em;
   border-radius: 4px;
-`;
+`; */
 
 const SubTitle = styled.h2`
   font-size: 1.5rem;
-  font-weight: 300;
+  font-weight: 500;
   letter-spacing: 0.2em;
   margin-bottom: 2rem;
   text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-
-  @media (min-width: 768px) {
-    font-size: 2.25rem;
-  }
 `;
 
 const BookingBar = styled.div`
@@ -216,6 +211,7 @@ const StyledSelect = styled.select`
 
 const CheckAvailabilityButton = styled(ActionButton)`
   width: 100%;
+  min-width: 190px;
   padding: 12px 0;
   font-size: 12px;
   font-weight: bold;
@@ -309,18 +305,14 @@ export default function Home() {
         {/* Hero Section */}
         <HeroSection>
           <HeroBackground>
-            <Image
+            <img
               src="/hero-image.png"
               alt="Hotel Facade"
-              fill
-              style={{ objectFit: "cover" }}
-              priority
             />
           </HeroBackground>
 
           <HeroContent>
             <WelcomeTitle>Welcome To</WelcomeTitle>
-            {/* <HotelNameBadge>HOTEL NAME HERE</HotelNameBadge> */}
             <SubTitle>HOTEL RESERVATIONS SYSTEM</SubTitle>
             <ActionButton $variant="outline" style={{ fontSize: '14px', padding: '12px 32px' }}>
               Book Room
@@ -386,7 +378,7 @@ export default function Home() {
                 </FilterContainer>
               </Col>
 
-              <Col md={12} lg={2}>
+              <Col md={20} lg={2}>
                 <CheckAvailabilityButton $variant="outline">
                   Check Availability
                 </CheckAvailabilityButton>
@@ -403,11 +395,9 @@ export default function Home() {
               <Col md={6}>
                 <ImageFrame>
                   <AboutImage>
-                    <Image
+                    <img
                       src="/hero-image.png"
                       alt="Relaxing Pool View"
-                      fill
-                      style={{ objectFit: "cover" }}
                     />
                   </AboutImage>
                 </ImageFrame>
