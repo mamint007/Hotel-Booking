@@ -3,6 +3,7 @@ import styled from "styled-components";
 import Image from "next/image";
 import { Container, Row, Col, ScreenClassProvider } from "react-grid-system";
 import Navbar from "../components/Navbar";
+import Link from "next/link";
 
 
 const Content = styled.div`
@@ -46,6 +47,7 @@ const ImageContainer = styled.div`
   position: relative;
   height: 500px;
   width: 100%;
+  margin-left: -43px;
 `;
 
 const PatioImage = styled.div`
@@ -262,10 +264,12 @@ export default function SignIn() {
                       <SignInButton type="submit">
                         Sign In
                       </SignInButton>
-
-                      <RegisterText>
+                       <Link href="/register">
+                        <RegisterText>
                         {"Don't have an account ?"} <span>Register</span>
                       </RegisterText>
+                       </Link>
+                  
                     </form>
                   </FormContainer>
                 </SignInInnerCard>
