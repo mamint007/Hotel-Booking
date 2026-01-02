@@ -1,23 +1,63 @@
-import express, { Request, Response } from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
+import './helpers/dotenv.helper'
+import app from './app'
+import winston from './helpers/winston'
+import databaseConnect from './helpers/sequelize.helper'
 
-dotenv.config();
 
-const app = express();
-const port = process.env.PORT || 3001;
+const PORT = Number(process.env.PORT) || 3001
+const MAX_RETRY_START = 3
+const RETRY_DELAY = 30000
 
-app.use(cors());
-app.use(express.json());
 
-app.get('/', (req: Request, res: Response) => {
-    res.send('Welcome to Hotel Service API');
-});
+async function retryConnection<T>(connectFunction: (winston?: any) => T | Promise<T>): Promise<boolean> {
+    let attempts = 0
+    let isConnect = false
+    while (attempts < MAX_RETRY_START) {
+        try {
+            const result = connectFunction(winston)
+            if (result instanceof Promise) {
+                await result
+            }
+            isConnect = true
+            break
+        } catch (error) {
+            attempts = attempts + 1
+            if (attempts < MAX_RETRY_START) {
+                winston.error(`Retrying in ${RETRY_DELAY / 1000} seconds...`)
+                await new Promise(resolve => setTimeout(resolve, RETRY_DELAY))
+            }
+        }
+    }
+    return isConnect
+}
 
-app.get('/health', (req: Request, res: Response) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+async function init(): Promise<void> {
+    const connectDatabase = await retryConnection(databaseConnect)
 
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
+    if (connectDatabase) {
+        const server = app().listen(PORT, () => {
+            winston.info(`Coffee Service listening at: http://localhost:${PORT}`)
+        })
+
+        function gracefulShutdown() {
+            winston.info('Received kill signal, shutting down gracefully...')
+
+            server.close(() => {
+                winston.info('Closed out remaining connections.')
+                process.exit(0)
+            })
+
+            setTimeout(() => {
+                winston.error('Could not close connections in time, forcefully shutting down')
+                process.exit(1)
+            }, 10000)
+        }
+
+        process.on('SIGINT', gracefulShutdown)
+    } else {
+        winston.error('Failed to connect infrastructure services')
+        process.exit(1)
+    }
+}
+
+void init()

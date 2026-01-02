@@ -1,13 +1,13 @@
 import { sequelize } from "@hotel/models";
 
-// import winston from './winston'
+import winston from './winston'
 
 const databaseConnect = async () => {
   try {
     await sequelize.authenticate()
-    console.log('Database connected')
+    winston.info('Database connected')
   } catch (error) {
-    console.log('Unable to connect database', JSON.stringify(error))
+    winston.error('Unable to connect database', JSON.stringify(error))
     throw error
   }
 }
