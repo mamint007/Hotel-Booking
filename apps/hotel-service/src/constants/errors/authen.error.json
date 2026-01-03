@@ -1,0 +1,18 @@
+{
+     "ERR_MEMBER_REGISTER_REQUIRED": {
+    "statusCode": 400,
+    "resCode": "0401",
+    "resDesc": {
+      "en": "Member registration is required.",
+      "th": "จำเป็นต้องลงทะเบียนผู้ใช้ กรอกข้อมูลให้ครบถ้วน"
+    }
+  },
+   "ERR_REGISTER_MEMBER_EXIST": {
+    "statusCode": 400,
+    "resCode": "0402",
+    "resDesc": {
+      "en": "Member Already Exist",
+      "th": "ข้อมูลUserมีอยู่แล้ว"
+    }
+  }
+}

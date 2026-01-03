@@ -2,14 +2,14 @@
     "name": "@hotel/models",
     "version": "0.0.0",
     "private": true,
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
+    "main": "./src/index.ts",
     "scripts": {
         "build": "tsc",
         "dev": "tsc --watch",
         "lint": "eslint ."
     },
     "dependencies": {
+        "bcryptjs": "^3.0.3",
         "dotenv": "^17.2.3",
         "pg": "^8.16.3",
         "pg-hstore": "^2.3.4",

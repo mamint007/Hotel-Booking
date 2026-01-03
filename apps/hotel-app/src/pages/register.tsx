@@ -1,21 +1,13 @@
 import Head from "next/head";
 import styled from "styled-components";
-import { Container, Row, Col, ScreenClassProvider } from "react-grid-system";
+import { Row, Col, ScreenClassProvider } from "react-grid-system";
 import Navbar from "../components/Navbar";
 import Link from "next/link";
 import { Poppins } from "next/font/google";
 import { createGlobalStyle } from "styled-components";
+import { useState } from "react";
+import axios from "axios";
 
-const GlobalStyle = createGlobalStyle`
-  body {
-    font-family: var(--font-poppins), sans-serif;
-  }
-`;
-
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -164,83 +156,215 @@ const LoginText = styled.p`
   }
 `;
 
+const ErrorText = styled.span`
+  color: red;
+  font-size: 0.9em;
+  margin-top: 5px;
+  margin-left: 2px;
+`
+
 export default function Register() {
+  const [name, setName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [sex, setSex] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [nameError, setNameError] = useState<string | null>(null)
+  const [lastNameError, setLastNameError] = useState<string | null>(null)
+  const [sexError, setSexError] = useState<string | null>(null)
+  const [emailError, setEmailError] = useState<string | null>(null)
+  const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [phoneNumberError, setPhoneNumberError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    resetErrors()
+    console.log({ name, lastName, sex, phoneNumber, email, password });
+    let isValid = true;
+
+    if (!name) {
+      setNameError('Please enter your name')
+      isValid = false;
+    }
+    if (!lastName) {
+      setLastNameError('Please enter your lastname')
+      isValid = false;
+    }
+    if (!sex) {
+      setSexError('Please enter your sex')
+      isValid = false;
+    }
+    if (!email) {
+      setEmailError('Please enter your email')
+      isValid = false;
+    }
+    if (!password) {
+      setPasswordError('Please enter your password')
+      isValid = false;
+    }
+    if (!phoneNumber) {
+      setPhoneNumberError('Please enter your phoneNumber')
+      isValid = false;
+    }
+
+    if (!isValid) {
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const res = await axios.post('/api/authen/register', {
+        name: name.trim(),
+        last_name: lastName.trim(),
+        sex: sex.trim(),
+        phone_number: phoneNumber.trim(),
+        email: email.trim(),
+        password: password
+      })
+      console.log(res.data)
+    } catch (err: any) {
+
+    } finally {
+      setLoading(false)
+    }
+
+
+
+  };
+
+
+  const resetErrors = () => {
+    setNameError(null)
+    setLastNameError(null)
+    setEmailError(null)
+    setPhoneNumberError(null)
+    setPasswordError(null)
+    setSexError(null)
+  }
+
   return (
-      <ScreenClassProvider>
-        <Head>
-          <title>Create Account | Hotel Reservations System</title>
-          <meta name="description" content="Create a new account" />
-        </Head>
+    <ScreenClassProvider>
+      <Head>
+        <title>Create Account | Hotel Reservations System</title>
+        <meta name="description" content="Create a new account" />
+      </Head>
 
-        <Navbar />
+      <Navbar />
 
-        <PageWrapper>
-          <RegisterCard>
-            <FormTitle>Create a new account</FormTitle>
-            <SubText>to use all features of the website</SubText>
+      <PageWrapper>
+        <RegisterCard>
+          <FormTitle>Create a new account</FormTitle>
+          <SubText>to use all features of the website</SubText>
 
-            <form>
-              <Row>
-                <Col md={6}>
-                  <FormGroup>
-                    <Label>Name</Label>
-                    <Input type="text" placeholder="Enter your Name" />
-                  </FormGroup>
-                </Col>
-                <Col md={6}>
-                  <FormGroup>
-                    <Label>LastName</Label>
-                    <Input type="text" placeholder="Enter your Lastname" />
-                  </FormGroup>
-                </Col>
-              </Row>
+          <form onSubmit={handleSubmit}>
+            <Row>
+              <Col md={6}>
+                <FormGroup>
+                  <Label>Name</Label>
+                  <Input
+                    type="text"
+                    placeholder="Enter your Name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                  {nameError && <ErrorText>{nameError}</ErrorText>}
+                </FormGroup>
+              </Col>
+              <Col md={6}>
+                <FormGroup>
+                  <Label>LastName</Label>
+                  <Input
+                    type="text"
+                    placeholder="Enter your Lastname"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
+                  {lastNameError && <ErrorText>{lastNameError}</ErrorText>}
+                </FormGroup>
+              </Col>
+            </Row>
 
-              <Row>
-                <Col md={6}>
-                  <FormGroup>
-                    <Label>Sex</Label>
-                    <RadioGroup>
-                      <RadioLabel>
-                        <RadioInput type="radio" name="sex" value="male" /> Male
-                      </RadioLabel>
-                      <RadioLabel>
-                        <RadioInput type="radio" name="sex" value="female" /> Female
-                      </RadioLabel>
-                    </RadioGroup>
-                  </FormGroup>
-                </Col>
-                <Col md={6}>
-                  <FormGroup>
-                    <Label>Phone Number</Label>
-                    <Input type="tel" placeholder="Enter your Phone Number" />
-                  </FormGroup>
-                </Col>
-              </Row>
+            <Row>
+              <Col md={6}>
+                <FormGroup>
+                  <Label>Sex</Label>
+                  <RadioGroup>
+                    <RadioLabel>
+                      <RadioInput
+                        type="radio"
+                        name="sex"
+                        value="M"
+                        checked={sex === "M"}
+                        onChange={(e) => setSex(e.target.value)}
+                      /> Male
+                    </RadioLabel>
+                    <RadioLabel>
+                      <RadioInput
+                        type="radio"
+                        name="sex"
+                        value="F"
+                        checked={sex === "F"}
+                        onChange={(e) => setSex(e.target.value)}
+                      /> Female
+                    </RadioLabel>
+                  </RadioGroup>
+                  {sexError && <ErrorText>{sexError}</ErrorText>}
+                </FormGroup>
+              </Col>
+              <Col md={6}>
+                <FormGroup>
+                  <Label>Phone Number</Label>
+                  <Input
+                    type="tel"
+                    placeholder="Enter your Phone Number"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                  />
+                  {phoneNumberError && <ErrorText>{phoneNumberError}</ErrorText>}
+                </FormGroup>
+              </Col>
+            </Row>
 
-              <Row>
-                <Col md={6}>
-                  <FormGroup>
-                    <Label>Email</Label>
-                    <Input type="email" placeholder="Enter your Email" />
-                  </FormGroup>
-                </Col>
-                <Col md={6}>
-                  <FormGroup>
-                    <Label>Password</Label>
-                    <Input type="password" placeholder="Enter your Password" />
-                  </FormGroup>
-                </Col>
-              </Row>
+            <Row>
+              <Col md={6}>
+                <FormGroup>
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    placeholder="Enter your Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                  {emailError && <ErrorText>{emailError}</ErrorText>}
+                </FormGroup>
+              </Col>
+              <Col md={6}>
+                <FormGroup>
+                  <Label>Password</Label>
+                  <Input
+                    type="password"
+                    placeholder="Enter your Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  {passwordError && <ErrorText>{passwordError}</ErrorText>}
+                </FormGroup>
+              </Col>
+            </Row>
 
-              <RegisterButton type="submit">Register</RegisterButton>
+            <RegisterButton type="submit">Register</RegisterButton>
 
-              <LoginText>
-                Already have an account ? <Link href="/signin">Sign In</Link>
-              </LoginText>
+            <LoginText>
+              Already have an account ? <Link href="/signin">Sign In</Link>
+            </LoginText>
 
-            </form>
-          </RegisterCard>
-        </PageWrapper>
-      </ScreenClassProvider>
+          </form>
+        </RegisterCard>
+      </PageWrapper>
+    </ScreenClassProvider>
   );
 } 

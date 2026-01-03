@@ -1,11 +1,11 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { urlencoded } from 'body-parser'
-
+import routers from './routers';
+import { createRequestLog, createResponseLog, createErrorLog } from './controller/logController'
 
 const APP = () => {
     const app = express();
-    const port = process.env.PORT || 3001;
 
     app.use(cors());
     app.use(express.json());
@@ -15,9 +15,16 @@ const APP = () => {
         res.send('Welcome to Hotel Service API');
     });
 
+    app.use(createRequestLog())
+
     app.get('/health', (req: Request, res: Response) => {
         res.json({ status: 'ok', timestamp: new Date().toISOString() });
     });
+
+    app.use(routers)
+
+    app.use(createResponseLog())
+    app.use(createErrorLog())
 
     return app
 }
