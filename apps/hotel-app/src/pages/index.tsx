@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Calendar, Users, User } from "lucide-react";
+import { Calendar, User } from "lucide-react";
 import styled, { createGlobalStyle } from "styled-components";
 import { Container, Row, Col, ScreenClassProvider } from "react-grid-system";
 import Navbar from "../components/Navbar";

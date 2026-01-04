@@ -4,8 +4,8 @@ import { Row, Col, ScreenClassProvider } from "react-grid-system";
 import Navbar from "../components/Navbar";
 import Link from "next/link";
 import { useState } from "react";
-import axios from "axios";
 import { useRouter } from "next/router";
+import axios from "../helpers/axios";
 import swalInstance from 'sweetalert2'
 
 const PageWrapper = styled.div`
@@ -217,7 +217,7 @@ export default function Register() {
     setLoading(true)
 
     try {
-      const res = await axios.post('/api/authen/register', {
+      const res = await axios.post('/authen/register', {
         name: name.trim(),
         last_name: lastName.trim(),
         sex: sex.trim(),
@@ -227,7 +227,7 @@ export default function Register() {
       })
       if (res.data?.res_code === '0000') {
         router.push('/signin')
-         swalInstance.fire({
+        swalInstance.fire({
           icon: 'success',
           title: 'Account Created',
           text: 'Redirecting to login...',
@@ -236,8 +236,8 @@ export default function Register() {
         })
       }
     } catch (err: any) {
-      const message = err?.response?.data?.res_code.toLowerCase()
-      console.log( err?.response?.data)
+      const message = err?.response?.data?.res_code?.toLowerCase()
+      console.log(err?.response?.data)
       if (message === '0402') {
         setEmailError('Email already exists')
       }
@@ -369,7 +369,7 @@ export default function Register() {
               </Col>
             </Row>
 
-            <RegisterButton type="submit">Register</RegisterButton>
+            <RegisterButton type="submit">{loading ? 'Register...' : 'Register'}</RegisterButton>
 
             <LoginText>
               Already have an account ? <Link href="/signin">Sign In</Link>

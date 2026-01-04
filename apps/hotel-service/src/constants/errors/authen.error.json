@@ -1,5 +1,5 @@
 {
-     "ERR_MEMBER_REGISTER_REQUIRED": {
+  "ERR_MEMBER_REGISTER_REQUIRED": {
     "statusCode": 400,
     "resCode": "0401",
     "resDesc": {
@@ -7,7 +7,7 @@
       "th": "จำเป็นต้องลงทะเบียนผู้ใช้ กรอกข้อมูลให้ครบถ้วน"
     }
   },
-   "ERR_REGISTER_EMAIL_MEMBER_EXIST": {
+  "ERR_REGISTER_EMAIL_MEMBER_EXIST": {
     "statusCode": 400,
     "resCode": "0402",
     "resDesc": {
@@ -21,6 +21,22 @@
     "resDesc": {
       "en": "Phone Already Exist",
       "th": "ข้อมูลUserมีอยู่แล้ว"
+    }
+  },
+  "ERR_MEMBER_LOGIN_REQUIRED": {
+    "statusCode": 400,
+    "resCode": "0404",
+    "resDesc": {
+      "en": "Email and password are required.",
+      "th": "กรุณากรอกอีเมลและรหัสผ่าน"
+    }
+  },
+  "ERR_MEMBER_LOGIN_FAIL": {
+    "statusCode": 401,
+    "resCode": "0405",
+    "resDesc": {
+      "en": "Invalid email or password.",
+      "th": "อีเมลหรือรหัสผ่านไม่ถูกต้อง"
     }
   }
 }

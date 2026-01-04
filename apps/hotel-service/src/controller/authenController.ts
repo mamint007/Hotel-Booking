@@ -2,6 +2,7 @@ import e, { Request, Response, NextFunction } from 'express';
 import { ServiceError } from "@hotel/helpers"
 import AuthenMasterError from '../constants/errors/authen.error.json'
 import { MemberModel } from "@hotel/models"
+import jwt from 'jsonwebtoken'
 
 
 const generateMemberId = async (): Promise<string> => {
@@ -41,7 +42,7 @@ export const register = () => async (req: Request, res: Response, next: NextFunc
       return next(new ServiceError(AuthenMasterError.ERR_REGISTER_EMAIL_MEMBER_EXIST))
     }
 
-    const existingPhoneMember = await MemberModel.findOne({ where: { m_tel: phoneNumber} })
+    const existingPhoneMember = await MemberModel.findOne({ where: { m_tel: phoneNumber } })
     if (existingPhoneMember) {
       return next(new ServiceError(AuthenMasterError.ERR_REGISTER_PHONE_MEMBER_EXIST))
     }
@@ -61,6 +62,45 @@ export const register = () => async (req: Request, res: Response, next: NextFunc
     res.locals.newMember = newMember
 
     return next()
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const login = () => async (req: Request, res: Response, next: NextFunction) => {
+  const { email, password } = req.body
+
+  if (!email || !password) {
+    return next(new ServiceError(AuthenMasterError.ERR_MEMBER_LOGIN_REQUIRED))
+  }
+
+  try {
+    const member = await MemberModel.findOne({ where: { m_email: email } })
+
+    if (!member) {
+      return next(new ServiceError(AuthenMasterError.ERR_MEMBER_LOGIN_FAIL))
+    }
+
+
+    const isMatch = member.m_password == password
+    if (!isMatch) {
+      return next(new ServiceError(AuthenMasterError.ERR_MEMBER_LOGIN_FAIL))
+    }
+
+    const accessToken = jwt.sign(
+      {
+        id: member.member_id,
+        email: member.m_email,
+        role: 'member'
+      },
+      process.env.JWT_SECRET || 'secret',
+      { expiresIn: '7d' }
+    )
+
+    res.locals.token = accessToken
+    res.locals.member = member
+    return next()
+
   } catch (error) {
     next(error)
   }

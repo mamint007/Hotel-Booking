@@ -1,9 +1,13 @@
 import Head from "next/head";
 import styled from "styled-components";
 import Image from "next/image";
-import { Container, Row, Col, ScreenClassProvider } from "react-grid-system";
+import { Container, ScreenClassProvider } from "react-grid-system";
 import Navbar from "../components/Navbar";
 import Link from "next/link";
+import { useState } from "react";
+import axios from "../helpers/axios";
+import { useRouter } from "next/router";
+import swalInstance from 'sweetalert2'
 
 
 const Content = styled.div`
@@ -202,7 +206,54 @@ const RegisterText = styled.p`
   }
 `;
 
+const ErrorText = styled.span`
+  color: red;
+  font-size: 0.9em;
+  margin-top: 5px;
+  display: block;
+`
+
 export default function SignIn() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null)
+
+    try {
+      const res = await axios.post('/authen/login', {
+        email: email.trim(),
+        password: password
+      })
+
+      if (res.data?.res_code === '0000') {
+        const token = res.data.data.token
+        console.log(token)
+        localStorage.setItem('token', token)
+        swalInstance.fire({
+          icon: 'success',
+          title: 'Login Successful',
+          timer: 1500,
+          showConfirmButton: false,
+        }).then(() => {
+          // TODO: Redirect to dashboard or home, for now home
+          router.push('/')
+
+        })
+      }
+    } catch (err: any) {
+      console.error(err)
+      const resCode = err?.response?.data?.res_code
+      if (["0404", "0405"].includes(resCode)) {
+        setError('Invalid Email or Password')
+      } else {
+        setError('Something went wrong. Please try again.')
+      }
+    }
+  }
   return (
     <ScreenClassProvider>
       <Head>
@@ -217,62 +268,73 @@ export default function SignIn() {
           <SignInCard>
             <Content>
               {/* Left Side - Images */}
-                <ImageContainer>
-                  <PatioImage>
-                    <Image
-                      src="/signin-patio.png"
-                      alt="Hotel Patio"
-                      fill
-                      style={{ objectFit: "cover" }}
-                    />
-                  </PatioImage>
+              <ImageContainer>
+                <PatioImage>
+                  <Image
+                    src="/signin-patio.png"
+                    alt="Hotel Patio"
+                    fill
+                    style={{ objectFit: "cover" }}
+                  />
+                </PatioImage>
 
-                  <BedroomImage>
-                    <Image
-                      src="/signin-bedroom.png"
-                      alt="Hotel Bedroom"
-                      fill
-                      style={{ objectFit: "cover" }}
-                    />
-                  </BedroomImage>
-                </ImageContainer>
+                <BedroomImage>
+                  <Image
+                    src="/signin-bedroom.png"
+                    alt="Hotel Bedroom"
+                    fill
+                    style={{ objectFit: "cover" }}
+                  />
+                </BedroomImage>
+              </ImageContainer>
 
               {/* Right Side - Form */}
-                <SignInInnerCard>
-                  <FormContainer>
-                    <WelcomeText>
-                      Welcome to HOTEL RESERVATIONS SYSTEM
-                    </WelcomeText>
+              <SignInInnerCard>
+                <FormContainer>
+                  <WelcomeText>
+                    Welcome to HOTEL RESERVATIONS SYSTEM
+                  </WelcomeText>
 
-                    <SubText>Sign In to your account</SubText>
+                  <SubText>Sign In to your account</SubText>
 
-                    <form>
-                      <FormGroup>
-                        <Label>Email</Label>
-                        <Input type="email" placeholder="Enter your Email" />
-                      </FormGroup>
+                  <form onSubmit={handleSubmit}>
+                    <FormGroup>
+                      <Label>Email</Label>
+                      <Input
+                        type="email"
+                        placeholder="Enter your Email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                    </FormGroup>
 
-                      <FormGroup>
-                        <Label>Password</Label>
-                        <Input type="password" placeholder="Enter your Password" />
-                      </FormGroup>
+                    <FormGroup>
+                      <Label>Password</Label>
+                      <Input
+                        type="password"
+                        placeholder="Enter your Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                      {error && <ErrorText>{error}</ErrorText>}
+                    </FormGroup>
 
-                      <ForgotPasswordLink href="#">
-                        Forgot password?
-                      </ForgotPasswordLink>
+                    <ForgotPasswordLink href="#">
+                      Forgot password?
+                    </ForgotPasswordLink>
 
-                      <SignInButton type="submit">
-                        Sign In
-                      </SignInButton>
-                       <Link href="/register">
-                        <RegisterText>
+                    <SignInButton type="submit">
+                      Sign In
+                    </SignInButton>
+                    <Link href="/register">
+                      <RegisterText>
                         {"Don't have an account ?"} <span>Register</span>
                       </RegisterText>
-                       </Link>
-                  
-                    </form>
-                  </FormContainer>
-                </SignInInnerCard>
+                    </Link>
+
+                  </form>
+                </FormContainer>
+              </SignInInnerCard>
             </Content>
 
           </SignInCard>

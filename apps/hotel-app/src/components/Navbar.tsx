@@ -1,7 +1,9 @@
 import styled from "styled-components";
 //import { Container, Row, Col } from "react-grid-system";
-import { Building2 } from "lucide-react";
+import { Building2, User, ChevronDown } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/router";
 
 const Header = styled.header`
   position: fixed;
@@ -70,38 +72,73 @@ const ActionButton = styled.button<{ outline?: boolean }>`
   }
 `;
 
+const UserProfile = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #4CAF50;
+  
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
 export default function Navbar() {
-    return (
-        <Header>
-            <NavContainer>
-                {/* LOGO */}
-                <Link href="/" style={{ textDecoration: "none" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <Building2 size={24} color="#4b5563" />
-                        <span style={{ fontSize: 14 }}>
-                            HOTEL RESERVATIONS SYSTEM
-                        </span>
-                    </div>
+   const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return !!localStorage.getItem('token');
+  });
+  const router = useRouter();
+
+  
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    router.push('/signin');
+  };
+
+  return (
+    <Header>
+      <NavContainer>
+        {/* LOGO */}
+        <Link href="/" style={{ textDecoration: "none" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <Building2 size={24} color="#4b5563" />
+            <span style={{ fontSize: 14 }}>
+              HOTEL RESERVATIONS SYSTEM
+            </span>
+          </div>
+        </Link>
+
+        {/* RIGHT SIDE */}
+        <RightGroup>
+          <NavMenu>
+            <NavLink href="/">HOME</NavLink>
+            <NavLink href="#">ROOM</NavLink>
+            <NavLink href="#">SERVICE & FACILITIES</NavLink>
+          </NavMenu>
+
+          <ActionGroup>
+            {isLoggedIn ? (
+              <UserProfile onClick={handleLogout}>
+                <User size={24} />
+                <ChevronDown size={16} />
+              </UserProfile>
+            ) : (
+              <>
+                <Link href="/signin">
+                  <ActionButton>Sign in</ActionButton>
                 </Link>
-
-                {/* RIGHT SIDE */}
-                <RightGroup>
-                    <NavMenu>
-                        <NavLink href="/">HOME</NavLink>
-                        <NavLink href="#">ROOM</NavLink>
-                        <NavLink href="#">SERVICE & FACILITIES</NavLink>
-                    </NavMenu>
-
-                    <ActionGroup>
-                        <Link href="/signin">
-                            <ActionButton >Sign in</ActionButton>
-                        </Link>
-                        <Link href="/register">
-                            <ActionButton>Register</ActionButton>
-                        </Link>
-                    </ActionGroup>
-                </RightGroup>
-            </NavContainer>
-        </Header>
-    );
+                <Link href="/register">
+                  <ActionButton outline>Register</ActionButton>
+                </Link>
+              </>
+            )}
+          </ActionGroup>
+        </RightGroup>
+      </NavContainer>
+    </Header>
+  );
 }
