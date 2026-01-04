@@ -7,11 +7,19 @@
       "th": "จำเป็นต้องลงทะเบียนผู้ใช้ กรอกข้อมูลให้ครบถ้วน"
     }
   },
-   "ERR_REGISTER_MEMBER_EXIST": {
+   "ERR_REGISTER_EMAIL_MEMBER_EXIST": {
     "statusCode": 400,
     "resCode": "0402",
     "resDesc": {
-      "en": "Member Already Exist",
+      "en": "Email Already Exist",
+      "th": "ข้อมูลUserมีอยู่แล้ว"
+    }
+  },
+  "ERR_REGISTER_PHONE_MEMBER_EXIST": {
+    "statusCode": 400,
+    "resCode": "0403",
+    "resDesc": {
+      "en": "Phone Already Exist",
       "th": "ข้อมูลUserมีอยู่แล้ว"
     }
   }

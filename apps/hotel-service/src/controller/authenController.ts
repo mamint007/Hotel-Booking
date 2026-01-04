@@ -38,7 +38,12 @@ export const register = () => async (req: Request, res: Response, next: NextFunc
   try {
     const existingMember = await MemberModel.findOne({ where: { m_email: email } })
     if (existingMember) {
-      return next(new ServiceError(AuthenMasterError.ERR_REGISTER_MEMBER_EXIST))
+      return next(new ServiceError(AuthenMasterError.ERR_REGISTER_EMAIL_MEMBER_EXIST))
+    }
+
+    const existingPhoneMember = await MemberModel.findOne({ where: { m_tel: phoneNumber} })
+    if (existingPhoneMember) {
+      return next(new ServiceError(AuthenMasterError.ERR_REGISTER_PHONE_MEMBER_EXIST))
     }
 
     const memberId = await generateMemberId()

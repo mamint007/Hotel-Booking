@@ -3,11 +3,10 @@ import styled from "styled-components";
 import { Row, Col, ScreenClassProvider } from "react-grid-system";
 import Navbar from "../components/Navbar";
 import Link from "next/link";
-import { Poppins } from "next/font/google";
-import { createGlobalStyle } from "styled-components";
 import { useState } from "react";
 import axios from "axios";
-
+import { useRouter } from "next/router";
+import swalInstance from 'sweetalert2'
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -177,6 +176,7 @@ export default function Register() {
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [phoneNumberError, setPhoneNumberError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -225,15 +225,28 @@ export default function Register() {
         email: email.trim(),
         password: password
       })
-      console.log(res.data)
+      if (res.data?.res_code === '0000') {
+        router.push('/signin')
+         swalInstance.fire({
+          icon: 'success',
+          title: 'Account Created',
+          text: 'Redirecting to login...',
+          timer: 1500,
+          showConfirmButton: false,
+        })
+      }
     } catch (err: any) {
-
+      const message = err?.response?.data?.res_code.toLowerCase()
+      console.log( err?.response?.data)
+      if (message === '0402') {
+        setEmailError('Email already exists')
+      }
+      if (message === '0403') {
+        setPhoneNumberError('Phone already exists')
+      }
     } finally {
       setLoading(false)
     }
-
-
-
   };
 
 
