@@ -2,7 +2,7 @@ import styled from "styled-components";
 //import { Container, Row, Col } from "react-grid-system";
 import { Building2, User, ChevronDown } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
 const Header = styled.header`
@@ -85,14 +85,18 @@ const UserProfile = styled.div`
 `;
 
 export default function Navbar() {
-   const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return !!localStorage.getItem('token');
-  });
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
-  
+    useEffect(() => {
+    const token = localStorage.getItem("token");
 
+    setIsLoggedIn(!!token);
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsLoggedIn(false);
