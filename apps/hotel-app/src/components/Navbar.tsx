@@ -1,6 +1,6 @@
 import styled from "styled-components";
 //import { Container, Row, Col } from "react-grid-system";
-import { Building2, User, ChevronDown } from "lucide-react";
+import { Building2, User, ChevronDown, LayoutDashboard, LogOut } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
@@ -84,23 +84,48 @@ const UserProfile = styled.div`
   }
 `;
 
+const AdminProfile = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`;
+
+const AdminBadge = styled.span`
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+`;
+
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    const adminToken = localStorage.getItem("admin_token");
 
     setIsLoggedIn(!!token);
+    setIsAdmin(!!adminToken);
     setMounted(true);
   }, []);
 
   if (!mounted) return null;
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsLoggedIn(false);
     router.push('/signin');
+  };
+
+  const handleAdminLogout = () => {
+    localStorage.removeItem('admin_token');
+    setIsAdmin(false);
+    router.push('/admin/login');
   };
 
   return (
@@ -118,15 +143,25 @@ export default function Navbar() {
 
         {/* RIGHT SIDE */}
         <RightGroup>
-          <NavMenu>
-            <NavLink href="/">HOME</NavLink>
-            <NavLink href="#">ROOM</NavLink>
-            <NavLink href="#">SERVICE & FACILITIES</NavLink>
-            <NavLink href="/admin/login">ADMIN</NavLink>
-          </NavMenu>
+          {!isAdmin && (
+            <NavMenu>
+              <NavLink href="/">HOME</NavLink>
+              <NavLink href="#">ROOM</NavLink>
+              <NavLink href="#">SERVICE & FACILITIES</NavLink>
+              <NavLink href="/admin/login">ADMIN</NavLink>
+            </NavMenu>
+          )}
 
           <ActionGroup>
-            {isLoggedIn ? (
+            {isAdmin ? (
+              <div
+                onClick={handleAdminLogout}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: '#555' }}
+              >
+                <span style={{ fontSize: 13, fontWeight: 500 }}>Admin</span>
+                <ChevronDown size={14} />
+              </div>
+            ) : isLoggedIn ? (
               <UserProfile onClick={handleLogout}>
                 <User size={24} />
                 <ChevronDown size={16} />

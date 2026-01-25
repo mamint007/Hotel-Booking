@@ -9,7 +9,7 @@ export async function up(queryInterface: QueryInterface) {
             emp_sex: 'M',
             emp_tel: '0830329145',
             emp_email: 'yelaysong15@gmail.com',
-            emp_password: '140974salaya', // Note: Ideally this should be hashed, but using raw as per image/request
+            emp_password: '140974saiaye', // Note: Ideally this should be hashed, but using raw as per image/request
             role_id: 'R01'
         }
     ]);
