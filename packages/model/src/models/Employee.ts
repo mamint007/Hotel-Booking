@@ -2,10 +2,12 @@ import {
     Model,
     DataTypes,
     InferAttributes,
-    InferCreationAttributes
+    InferCreationAttributes,
+    NonAttribute
 } from 'sequelize'
 
 import { sequelize } from '../sequelize'
+import { RoleModel } from './Role'
 
 export class EmployeeModel extends Model<
     InferAttributes<EmployeeModel>,
@@ -19,6 +21,7 @@ export class EmployeeModel extends Model<
     declare emp_email: string
     declare emp_password: string
     declare role_id: string
+    declare role?: NonAttribute<RoleModel>
 }
 
 EmployeeModel.init(

@@ -99,18 +99,89 @@ const AdminBadge = styled.span`
   font-weight: 600;
 `;
 
+const DropdownMenu = styled.div`
+  position: absolute;
+  top: 70px;
+  right: 24px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border: 1px solid #f3f4f6;
+  width: 280px;
+  overflow: hidden;
+  z-index: 100;
+`;
+
+const DropdownHeader = styled.div`
+  padding: 16px;
+  border-bottom: 1px solid #f3f4f6;
+  background-color: #f9fafb;
+`;
+
+const DropdownName = styled.p`
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 14px;
+  margin: 0;
+`;
+
+const DropdownEmail = styled.p`
+  color: #6b7280;
+  font-size: 12px;
+  margin: 4px 0 0 0;
+`;
+
+const DropdownRole = styled.span`
+  display: inline-block;
+  background-color: #dcfce7;
+  color: #166534;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-top: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+`;
+
+const DropdownItem = styled.div`
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  
+  &:hover {
+    background-color: #f3f4f6;
+  }
+`;
+
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [adminUser, setAdminUser] = useState<any>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     const adminToken = localStorage.getItem("admin_token");
+    const adminUserData = localStorage.getItem("admin_user");
 
     setIsLoggedIn(!!token);
     setIsAdmin(!!adminToken);
+
+    if (adminUserData) {
+      try {
+        setAdminUser(JSON.parse(adminUserData));
+        console.log(adminUserData)
+      } catch (e) {
+        console.error("Failed to parse admin user data", e);
+      }
+    }
+
     setMounted(true);
   }, []);
 
@@ -124,6 +195,7 @@ export default function Navbar() {
 
   const handleAdminLogout = () => {
     localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_user');
     setIsAdmin(false);
     router.push('/admin/login');
   };
@@ -154,12 +226,33 @@ export default function Navbar() {
 
           <ActionGroup>
             {isAdmin ? (
-              <div
-                onClick={handleAdminLogout}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: '#555' }}
-              >
-                <span style={{ fontSize: 13, fontWeight: 500 }}>Admin</span>
-                <ChevronDown size={14} />
+              <div style={{ position: 'relative' }}>
+                <div
+                  onClick={() => setShowDropdown(!showDropdown)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: '#555' }}
+                >
+                  <span style={{ fontSize: 13, fontWeight: 500 }}>Admin</span>
+                  <ChevronDown size={14} />
+                </div>
+
+                {showDropdown && (
+                  <DropdownMenu>
+                    <DropdownHeader>
+                      <DropdownName>{adminUser?.emp_firstname} {adminUser?.emp_lastname}</DropdownName>
+                      <DropdownEmail>{adminUser?.emp_email}</DropdownEmail>
+                      {/* Accessing role from included model, structure might be User.role.role_name or User.Role.role_name depending on sequelize alias */}
+                      <DropdownRole>{adminUser?.role?.role_name || adminUser?.Role?.role_name || 'Admin'}</DropdownRole>
+                    </DropdownHeader>
+                    <DropdownItem onClick={() => router.push('/admin/dashboard')}>
+                      <LayoutDashboard size={16} />
+                      Dashboard
+                    </DropdownItem>
+                    <DropdownItem onClick={handleAdminLogout} style={{ color: '#ef4444' }}>
+                      <LogOut size={16} />
+                      Log Out
+                    </DropdownItem>
+                  </DropdownMenu>
+                )}
               </div>
             ) : isLoggedIn ? (
               <UserProfile onClick={handleLogout}>

@@ -14,7 +14,11 @@ export const login = () => async (req: Request, res: Response, next: NextFunctio
     try {
         // Find employee by email
         const employee = await EmployeeModel.findOne({
-            where: { emp_email: email }
+            where: { emp_email: email },
+            include: [{
+                model: RoleModel,
+                as: 'role',
+            }]
         })
 
         if (!employee) {
@@ -31,7 +35,6 @@ export const login = () => async (req: Request, res: Response, next: NextFunctio
         // Check if role exists and is active (Optional but good practice)
         if (employee.role_id) {
             const role = await RoleModel.findByPk(employee.role_id)
-            console.log("Role: ",role)
             if (!role || role.is_active !== 'A') {
                 // Maybe specific error for inactive role, reusing login fail for security
                 return next(new ServiceError(AdminMasterError.ERR_ADMIN_LOGIN_FAIL))
@@ -42,7 +45,7 @@ export const login = () => async (req: Request, res: Response, next: NextFunctio
             {
                 id: employee.employee_id,
                 email: employee.emp_email,
-                role: 'admin', // Or use dynamic role name from RoleModel
+                role: employee.role?.role_name, // Or use dynamic role name from RoleModel
                 role_id: employee.role_id
             },
             process.env.JWT_SECRET || 'secret',

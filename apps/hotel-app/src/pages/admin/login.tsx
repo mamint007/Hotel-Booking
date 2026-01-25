@@ -206,7 +206,9 @@ export default function AdminLogin() {
 
             if (res.data?.res_code === '0000') {
                 const token = res.data.data.token
+                const employee = res.data.data.employee
                 localStorage.setItem('admin_token', token)
+                localStorage.setItem('admin_user', JSON.stringify(employee))
 
                 swalInstance.fire({
                     icon: 'success',
@@ -230,10 +232,10 @@ export default function AdminLogin() {
                 setError("Admin account not found.");
             } else if (resCode === "1401") {
                 setError(resDesc);
-            } else if (resCode === "1402"){
+            } else if (resCode === "1402") {
                 setError("Invalid email or password");
             }
-             else {
+            else {
                 const generalError = 'System error. Please contact support.';
                 setError(generalError);
             }
