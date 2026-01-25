@@ -1,0 +1,26 @@
+{
+    "ERR_ADMIN_LOGIN_REQUIRED": {
+        "statusCode": 400,
+        "resCode": "1401",
+        "resDesc": {
+            "en": "Email and password are required.",
+            "th": "กรุณากรอกอีเมลและรหัสผ่าน"
+        }
+    },
+    "ERR_ADMIN_LOGIN_FAIL": {
+        "statusCode": 401,
+        "resCode": "1402",
+        "resDesc": {
+            "en": "Invalid email or password.",
+            "th": "อีเมลหรือรหัสผ่านไม่ถูกต้อง"
+        }
+    },
+    "ERR_ADMIN_NOT_FOUND": {
+        "statusCode": 404,
+        "resCode": "1403",
+        "resDesc": {
+            "en": "Admin account not found.",
+            "th": "ไม่พบบัญชีผู้ดูแลระบบ"
+        }
+    }
+}

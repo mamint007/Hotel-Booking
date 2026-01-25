@@ -89,7 +89,7 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
-    useEffect(() => {
+  useEffect(() => {
     const token = localStorage.getItem("token");
 
     setIsLoggedIn(!!token);
@@ -110,7 +110,7 @@ export default function Navbar() {
         <Link href="/" style={{ textDecoration: "none" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <Building2 size={24} color="#4b5563" />
-            <span style={{ fontSize: 14 }}>
+            <span style={{ fontSize: 14, color: "black" }}>
               HOTEL RESERVATIONS SYSTEM
             </span>
           </div>
@@ -122,6 +122,7 @@ export default function Navbar() {
             <NavLink href="/">HOME</NavLink>
             <NavLink href="#">ROOM</NavLink>
             <NavLink href="#">SERVICE & FACILITIES</NavLink>
+            <NavLink href="/admin/login">ADMIN</NavLink>
           </NavMenu>
 
           <ActionGroup>
