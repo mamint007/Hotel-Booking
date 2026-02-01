@@ -1,8 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
-import { login, getAllEmployees, getAllRooms, getAllRoomTypes, getAllBookings, getAllPayments } from "../controller/adminController"
+import { login, getAllEmployees, getAllRooms, getAllRoomTypes, getAllBookings, getAllPayments, getAllPromotions } from "../controller/adminController"
 import { getAllUsers } from "../controller/userController"
 import { verifyAdminToken } from '../middleware/authMiddleware';
-// import { verifyAdminToken } from "../middleware/authMiddleware"
 
 const router = express.Router()
 
@@ -25,7 +24,7 @@ router.post(
 
 router.get(
     '/users',
-    verifyAdminToken(), // Uncomment to enable auth protection
+    verifyAdminToken(),
     getAllUsers(),
     (req: Request, res: Response, next: NextFunction) => {
         res.locals.response = {
@@ -107,6 +106,21 @@ router.get(
             res_code: '0000',
             res_desc: 'Get All Payments successfully',
             data: res.locals.payments
+        }
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.get(
+    '/promotions',
+    verifyAdminToken(),
+    getAllPromotions(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Get All Promotions successfully',
+            data: res.locals.promotions
         }
         res.json(res.locals.response)
         next()

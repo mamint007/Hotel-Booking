@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ServiceError } from "@hotel/helpers"
 import AdminMasterError from '../constants/errors/admin.error.json'
-import { EmployeeModel, RoleModel, RoomModel, RoomTypeModel, BookingModel, MemberModel, PaymentTypeModel, BookingDetailModel, PaymentModel } from "@hotel/models"
+import { EmployeeModel, RoleModel, RoomModel, RoomTypeModel, BookingModel, MemberModel, PaymentTypeModel, BookingDetailModel, PaymentModel, PromotionModel } from "@hotel/models"
 import jwt from 'jsonwebtoken'
 
 export const login = () => async (req: Request, res: Response, next: NextFunction) => {
@@ -145,6 +145,7 @@ export const getAllBookings = () => async (req: Request, res: Response, next: Ne
     }
 }
 
+
 export const getAllPayments = () => async (req: Request, res: Response, next: NextFunction) => {
     try {
         const payments = await PaymentModel.findAll({
@@ -152,6 +153,24 @@ export const getAllPayments = () => async (req: Request, res: Response, next: Ne
         });
 
         res.locals.payments = payments;
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const getAllPromotions = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const promotions = await PromotionModel.findAll({
+            include: [{
+                model: EmployeeModel,
+                as: 'employee',
+                attributes: ['emp_firstname', 'emp_lastname']
+            }],
+            order: [['promo_id', 'ASC']]
+        });
+
+        res.locals.promotions = promotions;
         next();
     } catch (error) {
         next(error);
