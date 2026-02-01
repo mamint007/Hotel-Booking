@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ServiceError } from "@hotel/helpers"
 import AdminMasterError from '../constants/errors/admin.error.json'
-import { EmployeeModel, RoleModel } from "@hotel/models"
+import { EmployeeModel, RoleModel, RoomModel, RoomTypeModel, BookingModel, MemberModel, PaymentTypeModel, BookingDetailModel, PaymentModel } from "@hotel/models"
 import jwt from 'jsonwebtoken'
 
 export const login = () => async (req: Request, res: Response, next: NextFunction) => {
@@ -74,6 +74,84 @@ export const getAllEmployees = () => async (req: Request, res: Response, next: N
         });
 
         res.locals.employees = employees;
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const getAllRooms = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const rooms = await RoomModel.findAll({
+            include: [{
+                model: RoomTypeModel,
+                as: 'room_type',
+                attributes: ['room_type_name']
+            }],
+            order: [['room_number', 'ASC']]
+        });
+
+        res.locals.rooms = rooms;
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const getAllRoomTypes = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roomTypes = await RoomTypeModel.findAll({
+            order: [['room_type_id', 'ASC']]
+        });
+
+        res.locals.roomTypes = roomTypes;
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const getAllBookings = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const bookings = await BookingModel.findAll({
+            include: [
+                {
+                    model: MemberModel,
+                    as: 'member',
+                    attributes: ['m_email']
+                },
+                {
+                    model: PaymentTypeModel,
+                    as: 'payment_type',
+                    attributes: ['payment_type_name']
+                },
+                {
+                    model: BookingDetailModel,
+                    as: 'booking_details',
+                    include: [{
+                        model: RoomModel,
+                        as: 'room',
+                        attributes: ['room_number']
+                    }]
+                }
+            ],
+            order: [['booking_id', 'DESC']]
+        });
+
+        res.locals.bookings = bookings;
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const getAllPayments = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const payments = await PaymentModel.findAll({
+            order: [['payment_id', 'DESC']]
+        });
+
+        res.locals.payments = payments;
         next();
     } catch (error) {
         next(error);
