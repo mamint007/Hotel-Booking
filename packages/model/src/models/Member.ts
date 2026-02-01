@@ -20,6 +20,7 @@ export class MemberModel extends Model<
     declare m_tel: string
     declare m_email: string
     declare m_password: string
+    declare is_deleted: CreationOptional<boolean>
 
     // ใช้ตรวจสอบ password
     // public async matchPassword(enteredPassword: string): Promise<boolean> {
@@ -68,6 +69,12 @@ MemberModel.init(
             type: DataTypes.STRING(20), // แนะนำให้ยาวขึ้นเพื่อ hash
             allowNull: false,
         },
+        is_deleted: {
+            field: 'is_deleted',
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+            allowNull: false
+        }
     },
     {
         sequelize,

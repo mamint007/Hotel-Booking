@@ -22,5 +22,21 @@
             "en": "Admin account not found.",
             "th": "ไม่พบบัญชีผู้ดูแลระบบ"
         }
+    },
+    "ERR_EMPLOYEE_CREATE_REQUIRED": {
+        "statusCode": 400,
+        "resCode": "1404",
+        "resDesc": {
+            "en": "All fields are required.",
+            "th": "กรุณากรอกข้อมูลให้ครบถ้วน"
+        }
+    },
+    "ERR_EMPLOYEE_ALREADY_EXISTS": {
+        "statusCode": 409,
+        "resCode": "1405",
+        "resDesc": {
+            "en": "Employee ID already exists.",
+            "th": "รหัสพนักงานนี้มีอยู่ในระบบแล้ว"
+        }
     }
 }

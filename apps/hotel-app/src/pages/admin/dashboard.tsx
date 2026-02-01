@@ -92,15 +92,23 @@ export default function AdminDashboard() {
         fetchUsers();
     }, []);
 
-    const handleDelete = (id: string) => {
-        // Placeholder for delete functionality
+
+    const handleDelete = async (id: string) => {
         if (confirm('Are you sure you want to delete this user?')) {
-            // Call API to delete user here
-            console.log('Delete user', id);
-            // Optimistic update
-            setUsers(users.filter(user => user.member_id !== id));
+            try {
+                const res = await axios.delete(`/admin/users/${id}`);
+                if (res.data && res.data.res_code === '0000') {
+                    setUsers(users.filter(user => user.member_id !== id));
+                    // Optional: Show success alert
+                    // alert("User deleted successfully"); 
+                }
+            } catch (error) {
+                console.error("Failed to delete user", error);
+                alert("Failed to delete user");
+            }
         }
     };
+
 
     return (
         <AdminAuthGuard>

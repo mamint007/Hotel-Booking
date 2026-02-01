@@ -1,9 +1,12 @@
 import express, { Request, Response, NextFunction } from 'express';
-import { login, getAllEmployees, getAllRooms, getAllRoomTypes, getAllBookings, getAllPayments, getAllPromotions } from "../controller/adminController"
+import { login, getAllEmployees, getAllRooms, getAllRoomTypes, getAllBookings, getAllPayments, getAllPromotions, createEmployee, deleteUser, } from "../controller/adminController"
 import { getAllUsers } from "../controller/userController"
+
 import { verifyAdminToken } from '../middleware/authMiddleware';
 
 const router = express.Router()
+
+
 
 router.post(
     '/login',
@@ -37,6 +40,22 @@ router.get(
     }
 )
 
+router.delete(
+    '/users/:id',
+    verifyAdminToken(),
+    deleteUser(),
+    (req: Request, res: Response, next: NextFunction) => {
+        // Response handled in controller or here if needed, consistent with others:
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Delete User Successfully',
+            data: res.locals.response
+        }
+        res.json(res.locals.response);
+        next();
+    }
+)
+
 router.get(
     '/employees',
     verifyAdminToken(),
@@ -51,6 +70,22 @@ router.get(
         next()
     }
 )
+
+router.post(
+    '/employees',
+    verifyAdminToken(),
+    createEmployee(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Create Employee successfully',
+            data: res.locals.employee
+        }
+        res.json(res.locals.response)
+        next()
+    }
+)
+
 
 router.get(
     '/rooms',

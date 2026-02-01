@@ -159,6 +159,7 @@ export const getAllPayments = () => async (req: Request, res: Response, next: Ne
     }
 }
 
+
 export const getAllPromotions = () => async (req: Request, res: Response, next: NextFunction) => {
     try {
         const promotions = await PromotionModel.findAll({
@@ -174,5 +175,72 @@ export const getAllPromotions = () => async (req: Request, res: Response, next: 
         next();
     } catch (error) {
         next(error);
+    }
+}
+
+
+export const createEmployee = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { emp_firstname, emp_lastname, emp_sex, emp_tel, emp_email, emp_password, role_id } = req.body;
+
+        if (!emp_firstname || !emp_lastname || !emp_sex || !emp_tel || !emp_email || !emp_password || !role_id) {
+            return next(new ServiceError(AdminMasterError.ERR_EMPLOYEE_CREATE_REQUIRED));
+        }
+
+        // Generate Employee ID
+        const lastEmployee = await EmployeeModel.findOne({
+            order: [['employee_id', 'DESC']]
+        });
+
+        let nextId = 'E001';
+        if (lastEmployee) {
+            const lastIdNum = parseInt(lastEmployee.employee_id.substring(1));
+            if (!isNaN(lastIdNum)) {
+                nextId = `E${(lastIdNum + 1).toString().padStart(3, '0')}`;
+            }
+        }
+
+        const newEmployee = await EmployeeModel.create({
+            employee_id: nextId,
+            emp_firstname,
+            emp_lastname,
+            emp_sex,
+            emp_tel,
+            emp_email,
+            emp_password,
+            role_id
+        });
+
+        res.locals.employee = newEmployee;
+        next();
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+
+
+export const deleteUser = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return next(new Error('User ID is required')); // Should use defined error
+        }
+
+        const user = await MemberModel.findByPk(id);
+        if (!user) {
+            return next(new Error('User not found')); // Should use defined error
+        }
+
+        user.is_deleted = true;
+        await user.save();
+
+        res.locals.response = { message: 'User deleted successfully' };
+        next();
+
+    } catch (err) {
+        return next(err);
     }
 }
