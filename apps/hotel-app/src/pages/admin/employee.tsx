@@ -4,10 +4,10 @@ import AdminAuthGuard from "../../components/AdminAuthGuard";
 import AdminLayout from "../../components/AdminLayout";
 import axios from "../../helpers/axios";
 
-// Styled components for the specific page content
+// Styled components
 const PageHeader = styled.h2`
   font-size: 24px;
-  color: #34a853; /* Match theme color */
+  color: #34a853;
   margin-bottom: 24px;
   font-weight: 600;
 `;
@@ -39,21 +39,14 @@ const Td = styled.td`
   color: #4b5563;
 `;
 
-const DeleteButton = styled.button`
-  background-color: #ef4444;
+const StatusBadge = styled.span`
+  background-color: #4CAF50;
   color: white;
-  border: none;
+  padding: 4px 12px;
   border-radius: 4px;
-  padding: 6px 12px;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  cursor: pointer;
-  letter-spacing: 0.5px;
-  
-  &:hover {
-    background-color: #dc2626;
-  }
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
 `;
 
 const EmptyState = styled.div`
@@ -62,85 +55,76 @@ const EmptyState = styled.div`
   color: #6b7280;
 `;
 
-// Interface for User Data based on API Response
-interface User {
-    member_id: string;
-    m_firstname: string;
-    m_lastname: string;
-    m_email: string;
-    m_tel: string;
+// Interface for Employee matching backend model
+interface Employee {
+    employee_id: string; // CHAR(4)
+    emp_firstname: string;
+    emp_lastname: string;
+    emp_email: string;
+    role?: {
+        role_name: string;
+    };
+    // No explicit status in model, but we will show Active
 }
 
-export default function AdminDashboard() {
-    const [users, setUsers] = useState<User[]>([]);
+export default function ManageEmployee() {
+    const [employees, setEmployees] = useState<Employee[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const fetchUsers = async () => {
+    const fetchEmployees = async () => {
         try {
-            const res = await axios.get('/admin/users');
+            const res = await axios.get('/admin/employees');
             if (res.data && res.data.res_code === '0000') {
-                setUsers(res.data.data);
+                setEmployees(res.data.data);
             }
         } catch (error) {
-            console.error("Failed to fetch users", error);
+            console.error("Failed to fetch employees", error);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchUsers();
+        fetchEmployees();
     }, []);
-
-    const handleDelete = (id: string) => {
-        // Placeholder for delete functionality
-        if (confirm('Are you sure you want to delete this user?')) {
-            // Call API to delete user here
-            console.log('Delete user', id);
-            // Optimistic update
-            setUsers(users.filter(user => user.member_id !== id));
-        }
-    };
 
     return (
         <AdminAuthGuard>
-            <AdminLayout activeMenu="Manage User" title="Admin - Manage User">
-                <PageHeader>Manage User</PageHeader>
+            <AdminLayout activeMenu="Manage Employee" title="Admin - Manage Employee">
+                <PageHeader>Manage Employee</PageHeader>
                 <Card>
                     {loading ? (
-                        <EmptyState>Loading users...</EmptyState>
+                        <EmptyState>Loading employees...</EmptyState>
                     ) : (
                         <Table>
                             <thead>
                                 <tr>
                                     <Th>No.</Th>
-                                    <Th>Email</Th>
                                     <Th>Name</Th>
                                     <Th>Lastname</Th>
-                                    <Th>Phone</Th>
+                                    <Th>Role</Th>
                                     <Th>Action</Th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {users.length > 0 ? (
-                                    users.map((user, index) => (
-                                        <tr key={user.member_id}>
+                                {employees.length > 0 ? (
+                                    employees.map((emp, index) => (
+                                        <tr key={emp.employee_id}>
                                             <Td>{index + 1}</Td>
-                                            <Td>{user.m_email}</Td>
-                                            <Td>{user.m_firstname}</Td>
-                                            <Td>{user.m_lastname}</Td>
-                                            <Td>{user.m_tel}</Td>
+                                            <Td>{emp.emp_firstname}</Td>
+                                            <Td>{emp.emp_lastname}</Td>
+                                            <Td>{emp.role?.role_name || '-'}</Td>
                                             <Td>
-                                                <DeleteButton onClick={() => handleDelete(user.member_id)}>
-                                                    DELETE
-                                                </DeleteButton>
+                                                <StatusBadge>
+                                                    Active
+                                                </StatusBadge>
                                             </Td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <Td colSpan={6}>
-                                            <EmptyState>No users found.</EmptyState>
+                                        <Td colSpan={5}>
+                                            <EmptyState>No employees found.</EmptyState>
                                         </Td>
                                     </tr>
                                 )}

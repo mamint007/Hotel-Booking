@@ -52,6 +52,9 @@ const GradientSide = styled.div`
   width: 100%;
   border-radius: 20px;
   background: linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%);
+  background-image: url('/signin-patio.png');
+  background-size: cover;
+  background-position: center;
   display: flex;
   flex-direction: column;
   justify-content: center;

@@ -60,3 +60,22 @@ export const login = () => async (req: Request, res: Response, next: NextFunctio
         next(error)
     }
 }
+
+export const getAllEmployees = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const employees = await EmployeeModel.findAll({
+            attributes: { exclude: ['emp_password'] },
+            include: [{
+                model: RoleModel,
+                as: 'role',
+                attributes: ['role_name']
+            }],
+            order: [['employee_id', 'ASC']]
+        });
+
+        res.locals.employees = employees;
+        next();
+    } catch (error) {
+        next(error);
+    }
+}

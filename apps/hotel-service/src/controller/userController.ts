@@ -1,31 +1,17 @@
-// import { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
+import { MemberModel } from "@hotel/models";
+import { ServiceError } from "@hotel/helpers";
 
+export const getAllUsers = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const users = await MemberModel.findAll({
+            attributes: { exclude: ['m_password'] } // Exclude password for security
+        });
 
-// export const authMiddleware = () => async (req: Request, res: Response, next: NextFunction) => {
-//     const authHeader = req.headers.authorization
-//     const token = authHeader?.split(' ')[1]
-
-//     if (!token) {
-//         return res.status(401).json({ res_desc: 'Unauthorized' })
-//     }
-//     const jwtSecret = new TextEncoder().encode(process.env.JWT_SECRET)
-
-//     try {
-//         const { payload } = await jwtVerify(token, jwtSecret) as any
-//         const user = await UserModel.findOne({
-//             where: {id: payload.id, status: true},
-//             attributes: ['id', 'username', 'email', 'role_id', 'last_login', 'recent_login'],
-//             include: [
-//                 {
-//                     model: UserRoleModel,
-//                     as: 'role',
-//                     attributes: ['name']
-//                 }
-//             ]
-//         })
-//         req.user = user as any
-//         next()
-//     } catch (err) {
-//         return next(new ServiceError(HTTP_ERROR.ERR_HTTP_401))
-//     }
-// }
+        res.locals.users = users;
+        next();
+    } catch (err) {
+        // You might want to define a specific error code for this
+        return next(err);
+    }
+}

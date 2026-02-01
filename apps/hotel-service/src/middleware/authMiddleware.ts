@@ -12,7 +12,7 @@ declare global {
     }
 }
 
-export const verifyAdminToken = (req: Request, res: Response, next: NextFunction) => {
+export const verifyAdminToken = () => (req: Request, res: Response, next: NextFunction) => {
     try {
         const authHeader = req.headers['authorization']
         const token = authHeader && authHeader.split(' ')[1] // Bearer TOKEN
@@ -27,7 +27,7 @@ export const verifyAdminToken = (req: Request, res: Response, next: NextFunction
             }
 
             // Check for specific admin claims if needed
-            if (decoded.role !== 'admin' && decoded.role !== 'superadmin') { // Example roles
+            if (decoded.role !== 'Owner' && decoded.role !== 'Admin') { // Example roles
                 // Could create a specific Forbidden error, but reusing login fail or 403 is okay
                 return next(new ServiceError(AdminMasterError.ERR_ADMIN_LOGIN_FAIL))
             }
