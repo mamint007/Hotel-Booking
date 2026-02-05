@@ -260,7 +260,7 @@ export default function AdminLogin() {
                         <Content>
                             {/* Left Side - Gradient & Info */}
                             <GradientSide>
-                                <BrandTitle>Admin</BrandTitle>
+                                <BrandTitle>Admin Portal</BrandTitle>
                                 <BrandSubtitle>
                                     Secure access for hotel management and administration.
                                 </BrandSubtitle>
