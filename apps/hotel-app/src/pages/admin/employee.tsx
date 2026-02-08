@@ -387,7 +387,7 @@ export default function ManageEmployee() {
                                     </FormGroup>
 
 
-                                      <FormGroup>
+                                    <FormGroup>
                                         <Label>Last Name</Label>
                                         <Input
                                             name="emp_lastname"

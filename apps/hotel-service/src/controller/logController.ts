@@ -116,8 +116,8 @@ export const createErrorLog = () => (err: Error, req: Request, res: Response, ne
         headers: JSON.stringify(res.getHeaders())
       },
       error: {
-        message: JSON.stringify(err),
-        stack: JSON.stringify(err.stack)
+        message: err.message,
+        stack: err.stack
       }
     }
   )

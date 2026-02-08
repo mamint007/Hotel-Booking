@@ -32,13 +32,13 @@ RoomModel.init(
     {
         room_id: {
             field: 'room_id',
-            type: DataTypes.CHAR(4),
+            type: DataTypes.STRING(10),
             primaryKey: true,
             allowNull: false
         },
         room_number: {
             field: 'room_number',
-            type: DataTypes.CHAR(3),
+            type: DataTypes.STRING(10),
             allowNull: false
         },
         floor: {
@@ -53,7 +53,7 @@ RoomModel.init(
         },
         price_per_night: {
             field: 'price_per_night',
-            type: DataTypes.DECIMAL(5, 2),
+            type: DataTypes.DECIMAL(10, 2),
             allowNull: false
         },
         bed_type: {

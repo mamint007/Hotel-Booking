@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
-import { login, getAllEmployees, getAllRooms, getAllRoomTypes, getAllBookings, getAllPayments, getAllPromotions, createEmployee, deleteUser, } from "../controller/adminController"
+import { login, getAllEmployees, getAllRooms, getAllRoomTypes, getAllBookings, getAllPayments, getAllPromotions, createEmployee, deleteUser, updateRoomStatus, createRoom, updateRoom, deleteRoom, createRoomType, updateRoomType, deleteRoomType } from "../controller/adminController"
 import { getAllUsers } from "../controller/userController"
 
 import { verifyAdminToken } from '../middleware/authMiddleware';
@@ -87,6 +87,8 @@ router.post(
 )
 
 
+
+
 router.get(
     '/rooms',
     verifyAdminToken(),
@@ -102,6 +104,66 @@ router.get(
     }
 )
 
+router.post(
+    '/rooms',
+    verifyAdminToken(),
+    createRoom(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Create Room successfully',
+            data: res.locals.room
+        }
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.put(
+    '/rooms/:id',
+    verifyAdminToken(),
+    updateRoom(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Update Room successfully',
+            data: res.locals.room
+        }
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.patch(
+    '/rooms/:id/status',
+    verifyAdminToken(),
+    updateRoomStatus(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Update Room Status successfully',
+            data: res.locals.room
+        }
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.delete(
+    '/rooms/:id',
+    verifyAdminToken(),
+    deleteRoom(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Delete Room successfully',
+            data: res.locals.response
+        }
+        res.json(res.locals.response)
+        next()
+    }
+)
+
 router.get(
     '/room-types',
     verifyAdminToken(),
@@ -111,6 +173,51 @@ router.get(
             res_code: '0000',
             res_desc: 'Get All Room Types successfully',
             data: res.locals.roomTypes
+        }
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.post(
+    '/room-types',
+    verifyAdminToken(),
+    createRoomType(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Create Room Type successfully',
+            data: res.locals.roomType
+        }
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.put(
+    '/room-types/:id',
+    verifyAdminToken(),
+    updateRoomType(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Update Room Type successfully',
+            data: res.locals.roomType
+        }
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.delete(
+    '/room-types/:id',
+    verifyAdminToken(),
+    deleteRoomType(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Delete Room Type successfully',
+            data: res.locals.response
         }
         res.json(res.locals.response)
         next()

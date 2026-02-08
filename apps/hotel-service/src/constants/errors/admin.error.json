@@ -38,5 +38,29 @@
             "en": "Employee ID already exists.",
             "th": "รหัสพนักงานนี้มีอยู่ในระบบแล้ว"
         }
+    },
+    "ERR_ROOM_CREATE_REQUIRED": {
+        "statusCode": 400,
+        "resCode": "1406",
+        "resDesc": {
+            "en": "All room fields are required.",
+            "th": "กรุณากรอกข้อมูลห้องพักให้ครบถ้วน"
+        }
+    },
+    "ERR_ROOM_ID_EXISTS": {
+        "statusCode": 409,
+        "resCode": "1407",
+        "resDesc": {
+            "en": "Room ID already exists.",
+            "th": "รหัสห้องพักนี้มีอยู่ในระบบแล้ว"
+        }
+    },
+    "ERR_ROOM_NUMBER_EXISTS": {
+        "statusCode": 409,
+        "resCode": "1408",
+        "resDesc": {
+            "en": "Room Number already exists.",
+            "th": "หมายเลขห้องพักนี้มีอยู่ในระบบแล้ว"
+        }
     }
 }

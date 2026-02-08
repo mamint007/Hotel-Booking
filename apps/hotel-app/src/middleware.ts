@@ -10,3 +10,5 @@ export function middleware (request: NextRequest): any {
 export const config = {
   matcher: '/api/:path*'
 }
+
+console.log('SERVER_SERVICE:', process.env.SERVER_SERVICE)

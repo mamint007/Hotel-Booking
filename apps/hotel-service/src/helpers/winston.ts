@@ -18,6 +18,10 @@ export function createLogger() {
             format: winston.format.combine(
                 myFormat
             )
+        }),
+        new winston.transports.File({
+            filename: 'logs/combined.log',
+            level: 'info'
         })
     ]
 

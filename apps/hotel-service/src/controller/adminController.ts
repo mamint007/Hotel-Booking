@@ -244,3 +244,221 @@ export const deleteUser = () => async (req: Request, res: Response, next: NextFu
         return next(err);
     }
 }
+
+export const createRoom = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { room_id, room_number, floor, price_per_night, bed_type, bed_quantity, max_guest, room_status, room_type_id } = req.body;
+
+        if (!room_id || !room_number || !floor || !price_per_night || !bed_type || !bed_quantity || !max_guest || !room_status || !room_type_id) {
+            return next(new ServiceError(AdminMasterError.ERR_ROOM_CREATE_REQUIRED));
+        }
+
+        // Check if room_id already exists
+        const existingRoomById = await RoomModel.findByPk(room_id);
+        if (existingRoomById) {
+            return next(new ServiceError(AdminMasterError.ERR_ROOM_ID_EXISTS));
+        }
+
+        // Check if room_number already exists
+        const existingRoomByNumber = await RoomModel.findOne({ where: { room_number } });
+        if (existingRoomByNumber) {
+            return next(new ServiceError(AdminMasterError.ERR_ROOM_NUMBER_EXISTS));
+        }
+
+        const newRoom = await RoomModel.create({
+            room_id,
+            room_number,
+            floor,
+            price_per_night,
+            bed_type,
+            bed_quantity,
+            max_guest,
+            room_status,
+            room_type_id
+        });
+
+        res.locals.room = newRoom;
+        next();
+
+    } catch (err) {
+        return next(err);
+    }
+}
+
+export const updateRoom = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { room_number, floor, price_per_night, bed_type, bed_quantity, max_guest, room_status, room_type_id } = req.body;
+
+        if (!id) {
+            return next(new Error('Room ID is required'));
+        }
+
+        const room = await RoomModel.findByPk(id);
+        if (!room) {
+            return next(new Error('Room not found'));
+        }
+
+        // Check if new room_number already exists (and is not that of the current room)
+        if (room_number && room_number !== room.room_number) {
+            const existingRoomByNumber = await RoomModel.findOne({ where: { room_number } });
+            if (existingRoomByNumber) {
+                return next(new Error('Room Number already exists'));
+            }
+        }
+
+        await room.update({
+            room_number: room_number || room.room_number,
+            floor: floor || room.floor,
+            price_per_night: price_per_night || room.price_per_night,
+            bed_type: bed_type || room.bed_type,
+            bed_quantity: bed_quantity || room.bed_quantity,
+            max_guest: max_guest || room.max_guest,
+            room_status: room_status || room.room_status,
+            room_type_id: room_type_id || room.room_type_id
+        });
+
+        res.locals.room = room;
+        next();
+
+    } catch (err) {
+        return next(err);
+    }
+}
+
+export const updateRoomStatus = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { room_status } = req.body;
+
+        if (!id || !room_status) {
+            return next(new Error('Room ID and status are required'));
+        }
+
+        const room = await RoomModel.findByPk(id);
+        if (!room) {
+            return next(new Error('Room not found'));
+        }
+
+        room.room_status = room_status;
+        await room.save();
+
+        res.locals.room = room;
+        next();
+
+    } catch (err) {
+        return next(err);
+    }
+}
+
+export const deleteRoom = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return next(new Error('Room ID is required'));
+        }
+
+        const room = await RoomModel.findByPk(id);
+        if (!room) {
+            return next(new Error('Room not found'));
+        }
+
+        await room.destroy();
+
+        res.locals.response = { message: 'Room deleted successfully' };
+        next();
+
+    } catch (err) {
+        return next(err);
+    }
+}
+
+export const createRoomType = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { room_type_name } = req.body;
+
+        if (!room_type_name) {
+            return next(new Error('Room type name is required'));
+        }
+
+        // Generate Room Type ID (e.g., T01, T02)
+        const lastRoomType = await RoomTypeModel.findOne({
+            order: [['room_type_id', 'DESC']]
+        });
+
+        let nextId = 'T01';
+        if (lastRoomType) {
+            const lastIdNum = parseInt(lastRoomType.room_type_id.substring(1));
+            if (!isNaN(lastIdNum)) {
+                nextId = `T${(lastIdNum + 1).toString().padStart(2, '0')}`;
+            }
+        }
+
+        const newRoomType = await RoomTypeModel.create({
+            room_type_id: nextId,
+            room_type_name
+        });
+
+        res.locals.roomType = newRoomType;
+        next();
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const updateRoomType = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { room_type_name } = req.body;
+
+        if (!id || !room_type_name) {
+            return next(new Error('Room Type ID and name are required'));
+        }
+
+        const roomType = await RoomTypeModel.findByPk(id);
+        if (!roomType) {
+            return next(new Error('Room Type not found'));
+        }
+
+        await roomType.update({
+            room_type_name
+        });
+
+        res.locals.roomType = roomType;
+        next();
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const deleteRoomType = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return next(new Error('Room Type ID is required'));
+        }
+
+        const roomType = await RoomTypeModel.findByPk(id);
+        if (!roomType) {
+            return next(new Error('Room Type not found'));
+        }
+
+        // Check if room type is in use
+        const roomCount = await RoomModel.count({ where: { room_type_id: id } });
+        if (roomCount > 0) {
+            return next(new Error('Cannot delete Room Type because it is in use by rooms'));
+        }
+
+        await roomType.destroy();
+
+        res.locals.response = { message: 'Room Type deleted successfully' };
+        next();
+
+    } catch (error) {
+        next(error);
+    }
+}
