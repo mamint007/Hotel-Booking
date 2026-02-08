@@ -246,6 +246,7 @@ interface Room {
     room_type?: {
         room_type_name: string;
     };
+    room_image?: string;
 }
 
 export default function ManageRoom() {
@@ -255,10 +256,11 @@ export default function ManageRoom() {
     const [editMode, setEditMode] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     // Form State
     const [formData, setFormData] = useState({
-        room_id: '',
+        room_id: '', // Keep for edit mode reference
         room_number: '',
         floor: 1,
         price_per_night: '',
@@ -306,8 +308,15 @@ export default function ManageRoom() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setSelectedFile(e.target.files[0]);
+        }
+    };
+
     const handleEdit = (room: Room) => {
         setEditMode(true);
+        setSelectedFile(null);
         setFormData({
             room_id: room.room_id,
             room_number: room.room_number,
@@ -324,6 +333,7 @@ export default function ManageRoom() {
 
     const handleAddClick = () => {
         setEditMode(false);
+        setSelectedFile(null);
         setFormData({
             room_id: '',
             room_number: '',
@@ -365,20 +375,30 @@ export default function ManageRoom() {
         setSubmitting(true);
 
         try {
-            // Prepare data for submission
-            const submissionData = {
-                ...formData,
-                floor: Number(formData.floor),
-                bed_quantity: Number(formData.bed_quantity),
-                max_guest: Number(formData.max_guest),
-                price_per_night: Number(formData.price_per_night)
-            };
+            const data = new FormData();
+            // Append all form fields
+            data.append('room_number', formData.room_number);
+            data.append('floor', String(formData.floor));
+            data.append('price_per_night', String(formData.price_per_night));
+            data.append('bed_type', formData.bed_type);
+            data.append('bed_quantity', String(formData.bed_quantity));
+            data.append('max_guest', String(formData.max_guest));
+            data.append('room_status', formData.room_status);
+            data.append('room_type_id', formData.room_type_id);
+
+            if (selectedFile) {
+                data.append('room_image', selectedFile);
+            }
 
             let res;
             if (editMode) {
-                res = await axios.put(`/admin/rooms/${formData.room_id}`, submissionData);
+                res = await axios.put(`/admin/rooms/${formData.room_id}`, data, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
             } else {
-                res = await axios.post('/admin/rooms', submissionData);
+                res = await axios.post('/admin/rooms', data, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
             }
 
             if (res.data && res.data.res_code === '0000') {
@@ -513,17 +533,7 @@ export default function ManageRoom() {
 
                             <form onSubmit={handleSubmit}>
                                 <FormGrid>
-                                    <FormGroup>
-                                        <Label>Room Id</Label>
-                                        <Input
-                                            name="room_id"
-                                            placeholder="Room Id"
-                                            value={formData.room_id}
-                                            onChange={handleChange}
-                                            required
-                                            disabled={editMode}
-                                        />
-                                    </FormGroup>
+                                    {/* Room ID Removed - Auto Generated */}
 
                                     <FormGroup>
                                         <Label>Room Number</Label>
@@ -634,9 +644,12 @@ export default function ManageRoom() {
                                         <Input
                                             type="file"
                                             name="room_image"
-                                            disabled
+                                            onChange={handleFileChange}
+                                            accept="image/*"
                                         />
-                                        <span style={{ fontSize: '12px', color: '#6b7280' }}>Image upload not yet implemented</span>
+                                        {editMode && !selectedFile && (
+                                            <span style={{ fontSize: '12px', color: '#6b7280' }}>Do not upload if you don't want to change current image</span>
+                                        )}
                                     </FormGroup>
                                 </FormGrid>
 

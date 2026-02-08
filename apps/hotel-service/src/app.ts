@@ -10,6 +10,7 @@ const APP = () => {
     app.use(cors());
     app.use(express.json());
     app.use(urlencoded({ extended: true }))
+    app.use('/uploads', express.static('public/uploads'));
 
     app.get('/', (req: Request, res: Response) => {
         res.send('Welcome to Hotel Service API');

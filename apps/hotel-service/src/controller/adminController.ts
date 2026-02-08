@@ -3,6 +3,9 @@ import { ServiceError } from "@hotel/helpers"
 import AdminMasterError from '../constants/errors/admin.error.json'
 import { EmployeeModel, RoleModel, RoomModel, RoomTypeModel, BookingModel, MemberModel, PaymentTypeModel, BookingDetailModel, PaymentModel, PromotionModel } from "@hotel/models"
 import jwt from 'jsonwebtoken'
+import path from 'path';
+import fs from 'fs';
+import { v4 as uuidv4 } from 'uuid';
 
 export const login = () => async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body
@@ -245,18 +248,25 @@ export const deleteUser = () => async (req: Request, res: Response, next: NextFu
     }
 }
 
+
 export const createRoom = () => async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { room_id, room_number, floor, price_per_night, bed_type, bed_quantity, max_guest, room_status, room_type_id } = req.body;
-
-        if (!room_id || !room_number || !floor || !price_per_night || !bed_type || !bed_quantity || !max_guest || !room_status || !room_type_id) {
+        const { room_number, floor, price_per_night, bed_type, bed_quantity, max_guest, room_status, room_type_id } = req.body;
+        if (!room_number || !floor || !price_per_night || !bed_type || !bed_quantity || !max_guest || !room_status || !room_type_id) {
             return next(new ServiceError(AdminMasterError.ERR_ROOM_CREATE_REQUIRED));
         }
 
-        // Check if room_id already exists
-        const existingRoomById = await RoomModel.findByPk(room_id);
-        if (existingRoomById) {
-            return next(new ServiceError(AdminMasterError.ERR_ROOM_ID_EXISTS));
+        // Generate Room ID (RM01, RM02, etc.)
+        const lastRoom = await RoomModel.findOne({
+            order: [['room_id', 'DESC']]
+        });
+
+        let nextId = 'RM01';
+        if (lastRoom) {
+            const lastIdNum = parseInt(lastRoom.room_id.substring(2)); // Extract number from RMxx
+            if (!isNaN(lastIdNum)) {
+                nextId = `RM${(lastIdNum + 1).toString().padStart(2, '0')}`;
+            }
         }
 
         // Check if room_number already exists
@@ -265,10 +275,21 @@ export const createRoom = () => async (req: Request, res: Response, next: NextFu
             return next(new ServiceError(AdminMasterError.ERR_ROOM_NUMBER_EXISTS));
         }
 
+        // Generate filename
+        let room_image = null;
+        let filename = null;
+        if (req.file) {
+            const uniqueSuffix = uuidv4();
+            const ext = path.extname(req.file.originalname);
+            filename = `${uniqueSuffix}${ext}`;
+            room_image = `/uploads/${filename}`;
+        }
+
         const newRoom = await RoomModel.create({
-            room_id,
+            room_id: nextId,
             room_number,
             floor,
+            room_image, // Save the path to DB
             price_per_night,
             bed_type,
             bed_quantity,
@@ -276,6 +297,15 @@ export const createRoom = () => async (req: Request, res: Response, next: NextFu
             room_status,
             room_type_id
         });
+
+        // After successful DB creation, save the file
+        if (req.file && filename) {
+            const uploadDir = path.join(process.cwd(), 'public/uploads');
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+            fs.writeFileSync(path.join(uploadDir, filename), req.file.buffer);
+        }
 
         res.locals.room = newRoom;
         next();
@@ -285,10 +315,21 @@ export const createRoom = () => async (req: Request, res: Response, next: NextFu
     }
 }
 
+
 export const updateRoom = () => async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
         const { room_number, floor, price_per_night, bed_type, bed_quantity, max_guest, room_status, room_type_id } = req.body;
+
+        // Handle file upload manually if present
+        let room_image = undefined;
+        let filename = null;
+        if (req.file) {
+            const uniqueSuffix = uuidv4();
+            const ext = path.extname(req.file.originalname);
+            filename = `${uniqueSuffix}${ext}`;
+            room_image = `/uploads/${filename}`;
+        }
 
         if (!id) {
             return next(new Error('Room ID is required'));
@@ -307,16 +348,29 @@ export const updateRoom = () => async (req: Request, res: Response, next: NextFu
             }
         }
 
-        await room.update({
-            room_number: room_number || room.room_number,
-            floor: floor || room.floor,
-            price_per_night: price_per_night || room.price_per_night,
-            bed_type: bed_type || room.bed_type,
-            bed_quantity: bed_quantity || room.bed_quantity,
-            max_guest: max_guest || room.max_guest,
-            room_status: room_status || room.room_status,
-            room_type_id: room_type_id || room.room_type_id
-        });
+        // Only update fields that are present in the request body
+        // and ensure numeric fields are numbers
+        const updates: any = {};
+        if (room_number !== undefined) updates.room_number = room_number;
+        if (floor !== undefined) updates.floor = Number(floor);
+        if (price_per_night !== undefined) updates.price_per_night = Number(price_per_night);
+        if (bed_type !== undefined) updates.bed_type = bed_type;
+        if (bed_quantity !== undefined) updates.bed_quantity = Number(bed_quantity);
+        if (max_guest !== undefined) updates.max_guest = Number(max_guest);
+        if (room_status !== undefined) updates.room_status = room_status;
+        if (room_type_id !== undefined) updates.room_type_id = room_type_id;
+        if (room_image !== undefined) updates.room_image = room_image;
+
+        await room.update(updates);
+
+        // After successful DB update, save the file
+        if (req.file && filename) {
+            const uploadDir = path.join(process.cwd(), 'public/uploads');
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+            fs.writeFileSync(path.join(uploadDir, filename), req.file.buffer);
+        }
 
         res.locals.room = room;
         next();
@@ -325,6 +379,8 @@ export const updateRoom = () => async (req: Request, res: Response, next: NextFu
         return next(err);
     }
 }
+
+
 
 export const updateRoomStatus = () => async (req: Request, res: Response, next: NextFunction) => {
     try {

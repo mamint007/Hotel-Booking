@@ -4,6 +4,9 @@ import { getAllUsers } from "../controller/userController"
 
 import { verifyAdminToken } from '../middleware/authMiddleware';
 
+
+import { upload } from '../middleware/uploadMiddleware';
+
 const router = express.Router()
 
 
@@ -107,6 +110,7 @@ router.get(
 router.post(
     '/rooms',
     verifyAdminToken(),
+    upload.single('room_image'),
     createRoom(),
     (req: Request, res: Response, next: NextFunction) => {
         res.locals.response = {
@@ -122,6 +126,7 @@ router.post(
 router.put(
     '/rooms/:id',
     verifyAdminToken(),
+    upload.single('room_image'),
     updateRoom(),
     (req: Request, res: Response, next: NextFunction) => {
         res.locals.response = {
