@@ -217,6 +217,32 @@ export const createEmployee = () => async (req: Request, res: Response, next: Ne
         res.locals.employee = newEmployee;
         next();
 
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const updateEmployeeStatus = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        if (!id || status === undefined) {
+            return next(new ServiceError(AdminMasterError.ERR_EMPLOYEE_UPDATE_REQUIRED || 'Employee ID and status are required'));
+        }
+
+        const employee = await EmployeeModel.findByPk(id);
+        if (!employee) {
+            return next(new ServiceError(AdminMasterError.ERR_EMPLOYEE_NOT_FOUND || 'Employee not found'));
+        }
+
+        employee.status = status;
+        await employee.save();
+
+        res.locals.employee = employee;
+        next();
+
     } catch (error) {
         next(error);
     }

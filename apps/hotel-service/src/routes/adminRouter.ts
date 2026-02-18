@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
-import { login, getAllEmployees, getAllRooms, getAllRoomTypes, getAllBookings, getAllPayments, getAllPromotions, createEmployee, deleteUser, updateRoomStatus, createRoom, updateRoom, deleteRoom, createRoomType, updateRoomType, deleteRoomType, getMe } from "../controller/adminController"
+import { login, getAllEmployees, getAllRooms, getAllRoomTypes, getAllBookings, getAllPayments, getAllPromotions, createEmployee, updateEmployeeStatus, deleteUser, updateRoomStatus, createRoom, updateRoom, deleteRoom, createRoomType, updateRoomType, deleteRoomType, getMe } from "../controller/adminController"
 import { getAllUsers } from "../controller/userController"
 
 import { verifyAdminToken } from '../middleware/authMiddleware';
@@ -82,6 +82,21 @@ router.post(
         res.locals.response = {
             res_code: '0000',
             res_desc: 'Create Employee successfully',
+            data: res.locals.employee
+        }
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.patch(
+    '/employees/:id/status',
+    verifyAdminToken(),
+    updateEmployeeStatus(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Update Employee Status successfully',
             data: res.locals.employee
         }
         res.json(res.locals.response)

@@ -79,11 +79,11 @@ const StatusBadge = styled.span`
   display: inline-block;
 `;
 
-const StatusSelect = styled.select<{ $status: string }>`
+const StatusSelect = styled.select<{ $status: boolean }>`
   padding: 6px 12px;
   border-radius: 4px;
   border: 1px solid transparent;
-  background-color: ${(props) => (props.$status === 'Active' ? '#4CAF50' : '#ef4444')};
+  background-color: ${(props) => (props.$status ? '#4CAF50' : '#ef4444')};
   font-size: 12px;
   font-weight: 500;
   color: white;
@@ -243,7 +243,7 @@ interface Employee {
     emp_firstname: string;
     emp_lastname: string;
     emp_email: string;
-    status?: string;
+    status?: boolean;
     role?: {
         role_name: string;
     };
@@ -266,7 +266,7 @@ export default function ManageEmployee() {
         role_id: 'R03' // Default to Employee
     });
 
-    const handleStatusChange = async (id: string, newStatus: string) => {
+    const handleStatusChange = async (id: string, newStatus: boolean) => {
         setEmployees(prev => prev.map(emp =>
             emp.employee_id === id ? { ...emp, status: newStatus } : emp
         ));
@@ -381,12 +381,12 @@ export default function ManageEmployee() {
                                             <Td>{emp.role?.role_name || '-'}</Td>
                                             <Td>
                                                 <StatusSelect
-                                                    $status={emp.status || 'Active'}
-                                                    value={emp.status || 'Active'}
-                                                    onChange={(e) => handleStatusChange(emp.employee_id, e.target.value)}
+                                                    $status={emp.status ?? true}
+                                                    value={emp.status ? "1" : "0"}
+                                                    onChange={(e) => handleStatusChange(emp.employee_id, e.target.value === "1")}
                                                 >
-                                                    <option value="Active">Active</option>
-                                                    <option value="Inactive">Inactive</option>
+                                                    <option value="1">Active</option>
+                                                    <option value="0">Inactive</option>
                                                 </StatusSelect>
                                             </Td>
                                         </tr>

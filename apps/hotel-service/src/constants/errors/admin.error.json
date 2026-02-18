@@ -39,6 +39,22 @@
             "th": "รหัสพนักงานนี้มีอยู่ในระบบแล้ว"
         }
     },
+    "ERR_EMPLOYEE_NOT_FOUND": {
+        "statusCode": 404,
+        "resCode": "1409",
+        "resDesc": {
+            "en": "Employee not found.",
+            "th": "ไม่พบพนักงาน"
+        }
+    },
+    "ERR_EMPLOYEE_UPDATE_REQUIRED": {
+        "statusCode": 400,
+        "resCode": "1410",
+        "resDesc": {
+            "en": "Employee ID and status are required.",
+            "th": "กรุณาระบุรหัสพนักงานและสถานะ"
+        }
+    },
     "ERR_ROOM_CREATE_REQUIRED": {
         "statusCode": 400,
         "resCode": "1406",
@@ -63,7 +79,7 @@
             "th": "หมายเลขห้องพักนี้มีอยู่ในระบบแล้ว"
         }
     },
-        "TOKEN_EXPIRED": {
+    "TOKEN_EXPIRED": {
         "statusCode": 401,
         "resCode": "0406",
         "resDesc": {

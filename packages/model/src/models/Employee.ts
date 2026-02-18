@@ -3,7 +3,8 @@ import {
     DataTypes,
     InferAttributes,
     InferCreationAttributes,
-    NonAttribute
+    NonAttribute,
+    CreationOptional
 } from 'sequelize'
 
 import { sequelize } from '../sequelize'
@@ -20,6 +21,7 @@ export class EmployeeModel extends Model<
     declare emp_tel: string
     declare emp_email: string
     declare emp_password: string
+    declare status: CreationOptional<boolean>
     declare role_id: string
     declare role?: NonAttribute<RoleModel>
 }
@@ -64,6 +66,12 @@ EmployeeModel.init(
             field: 'emp_password',
             type: DataTypes.STRING(20),
             allowNull: false
+        },
+        status: {
+            field: 'status',
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true
         },
         role_id: {
             field: 'role_id',
