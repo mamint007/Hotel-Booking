@@ -4,6 +4,7 @@ import { Building2, User, ChevronDown, LayoutDashboard, LogOut } from "lucide-re
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import axiosInstance from "../helpers/axios";
 
 const Header = styled.header`
   position: fixed;
@@ -181,6 +182,30 @@ export default function Navbar() {
         console.error("Failed to parse admin user data", e);
       }
     }
+
+    const checkToken = async (tokenToCheck: string, isAdminToken: boolean) => {
+      try {
+        const endpoint = isAdminToken ? '/admin/me' : '/authen/me';
+        // Interceptor handles Authorization header and global errors (401/406)
+        await axiosInstance.get(endpoint);
+      } catch (error) {
+        console.error("Token verification failed", error);
+        // Interceptor handles redirect, but we might want to cleanup state here if needed
+        // largely redundant if interceptor redirects, but good for safety if we stay on page
+        if (isAdminToken) {
+          localStorage.removeItem('admin_user');
+          setIsAdmin(false);
+          router.push('/admin/login');
+        } else {
+          localStorage.removeItem('token');
+          setIsLoggedIn(false);
+          router.push('/signin');
+        }
+      }
+    };
+
+    if (token) checkToken(token, false);
+    if (adminToken) checkToken(adminToken, true);
 
     setMounted(true);
   }, []);

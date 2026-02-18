@@ -105,3 +105,19 @@ export const login = () => async (req: Request, res: Response, next: NextFunctio
     next(error)
   }
 }
+
+export const getMe = () => async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { email } = res.locals.user
+    const member = await MemberModel.findOne({ where: { m_email: email } })
+
+    if (!member) {
+      return next(new ServiceError(AuthenMasterError.ERR_MEMBER_LOGIN_FAIL))
+    }
+
+    res.locals.member = member
+    next()
+  } catch (error) {
+    next(error)
+  }
+}

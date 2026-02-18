@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
-import { login, getAllEmployees, getAllRooms, getAllRoomTypes, getAllBookings, getAllPayments, getAllPromotions, createEmployee, deleteUser, updateRoomStatus, createRoom, updateRoom, deleteRoom, createRoomType, updateRoomType, deleteRoomType } from "../controller/adminController"
+import { login, getAllEmployees, getAllRooms, getAllRoomTypes, getAllBookings, getAllPayments, getAllPromotions, createEmployee, deleteUser, updateRoomStatus, createRoom, updateRoom, deleteRoom, createRoomType, updateRoomType, deleteRoomType, getMe } from "../controller/adminController"
 import { getAllUsers } from "../controller/userController"
 
 import { verifyAdminToken } from '../middleware/authMiddleware';
@@ -268,6 +268,23 @@ router.get(
             res_code: '0000',
             res_desc: 'Get All Promotions successfully',
             data: res.locals.promotions
+        }
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.get(
+    '/me',
+    verifyAdminToken(),
+    getMe(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Get Me Successfully',
+            data: {
+                employee: res.locals.employee
+            }
         }
         res.json(res.locals.response)
         next()

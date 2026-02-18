@@ -518,3 +518,26 @@ export const deleteRoomType = () => async (req: Request, res: Response, next: Ne
         next(error);
     }
 }
+
+export const getMe = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { email } = res.locals.user
+        const employee = await EmployeeModel.findOne({
+            where: { emp_email: email },
+            include: [{
+                model: RoleModel,
+                as: 'role',
+            }]
+        })
+
+        if (!employee) {
+            return next(new ServiceError(AdminMasterError.ERR_ADMIN_LOGIN_FAIL))
+        }
+
+        res.locals.employee = employee
+        next()
+
+    } catch (error) {
+        next(error)
+    }
+}
