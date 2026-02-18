@@ -36,7 +36,7 @@ async function init(): Promise<void> {
 
     if (connectDatabase) {
         const server = app().listen(PORT, () => {
-            winston.info(`Coffee Service listening at: http://localhost:${PORT}`)
+            winston.info(`Hotel Service listening at: http://localhost:${PORT}`)
         })
 
         function gracefulShutdown() {

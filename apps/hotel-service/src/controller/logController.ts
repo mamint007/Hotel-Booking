@@ -16,8 +16,8 @@ export const createRequestLog = () => (req: Request, res: Response, next: NextFu
     `${req.ip} ` +
     `${req.headers['user-agent']}`,
     {
-      appName: 'Coffee-shop',
-      source: 'coffee-service',
+      appName: 'Hotel-Booking',
+      source: 'hotel-service',
       requestId: res.locals.requestId,
       type: 'request',
       method: req.method,
@@ -54,8 +54,8 @@ export const createResponseLog = () => (req: Request, res: Response, next: NextF
       type: 'response',
       method: req.method,
       url: req.originalUrl,
-      appName: 'Coffee-Shop',
-      source: 'Coffee-service',
+      appName: 'Hotel-Booking',
+      source: 'hotel-service',
       resp: {
         status: res.statusCode,
         time: responseTime,
@@ -107,8 +107,8 @@ export const createErrorLog = () => (err: Error, req: Request, res: Response, ne
       method: req.method,
       url: req.originalUrl,
       functionName,
-      appName: 'Coffee-Shop',
-      source: 'Coffee-service',
+      appName: 'Hotel-Booking',
+      source: 'hotel-service',
       resp: {
         status: res.statusCode,
         time: responseTime,

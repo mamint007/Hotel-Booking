@@ -329,3 +329,20 @@
 {"appName":"Coffee-shop","level":"info","message":"Request 17Bnu29Uo_9wak_xOKAxM GET /admin/rooms ::ffff:127.0.0.1 Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36","method":"GET","req":{"body":"{}","headers":"{\"x-forwarded-for\":\"::1\",\"x-forwarded-proto\":\"http\",\"x-forwarded-port\":\"3000\",\"x-forwarded-host\":\"localhost:3000\",\"if-none-match\":\"W/\\\"150-vwYyK3EGawxTBz1I80BDsUHYdOw\\\"\",\"cookie\":\"__next_hmr_refresh_hash__=63; authToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJTdXBlckFkbWluIiwiaWF0IjoxNzcwMTg4ODc1LCJleHAiOjE3NzAxODk0NzV9.KcUvBsH-sI2vyWXaJly5dHhOq_-VeG9piJzMs2tdWf4\",\"accept-language\":\"en-US,en;q=0.9\",\"accept-encoding\":\"gzip, deflate, br, zstd\",\"referer\":\"http://localhost:3000/admin/room\",\"sec-fetch-dest\":\"empty\",\"sec-fetch-mode\":\"cors\",\"sec-fetch-site\":\"same-origin\",\"sec-ch-ua-mobile\":\"?0\",\"sec-ch-ua\":\"\\\"Not(A:Brand\\\";v=\\\"8\\\", \\\"Chromium\\\";v=\\\"144\\\"\",\"accept\":\"application/json, text/plain, */*\",\"user-agent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36\",\"authorization\":\"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IkUwMDEiLCJlbWFpbCI6InllbGF5c29uZzE1QGdtYWlsLmNvbSIsInJvbGUiOiJPd25lciIsInJvbGVfaWQiOiJSMDEiLCJpYXQiOjE3NzA1NTEwMjksImV4cCI6MTc3MDYzNzQyOX0.KP0iHb998-LcangRjh-e2kmu5P6hVL3L-TWSfShOA60\",\"sec-ch-ua-platform\":\"\\\"macOS\\\"\",\"connection\":\"close\",\"host\":\"127.0.0.1:3001\"}","params":"{}","query":"{}"},"requestId":"17Bnu29Uo_9wak_xOKAxM","source":"coffee-service","timestamp":"2026-02-08T12:33:14.876Z","type":"request","url":"/admin/rooms"}
 {"appName":"Coffee-Shop","level":"info","message":"Response 17Bnu29Uo_9wak_xOKAxM GET /admin/rooms 200 35ms","method":"GET","requestUID":"17Bnu29Uo_9wak_xOKAxM","resp":{"headers":"{\"x-powered-by\":\"Express\",\"access-control-allow-origin\":\"*\",\"content-type\":\"application/json; charset=utf-8\",\"content-length\":\"337\",\"etag\":\"W/\\\"151-/4O2bPO3ItaBEaD9Ox8oCuWaQhA\\\"\"}","status":200,"time":35,"timeUnit":"ms"},"source":"Coffee-service","timestamp":"2026-02-08T12:33:14.911Z","type":"response","url":"/admin/rooms"}
 {"level":"info","message":"Received kill signal, shutting down gracefully...","timestamp":"2026-02-08T12:36:14.516Z"}
+{"level":"info","message":"Database connected","timestamp":"2026-02-18T08:00:45.802Z"}
+{"level":"info","message":"Coffee Service listening at: http://localhost:3001","timestamp":"2026-02-18T08:00:45.816Z"}
+{"level":"info","message":"Database connected","timestamp":"2026-02-18T08:03:40.512Z"}
+{"level":"info","message":"Hotel Service listening at: http://localhost:3001","timestamp":"2026-02-18T08:03:40.526Z"}
+{"level":"info","message":"Database connected","timestamp":"2026-02-18T08:04:05.769Z"}
+{"level":"info","message":"Hotel Service listening at: http://localhost:3001","timestamp":"2026-02-18T08:04:05.779Z"}
+{"level":"info","message":"Database connected","timestamp":"2026-02-18T08:04:09.848Z"}
+{"level":"info","message":"Hotel Service listening at: http://localhost:3001","timestamp":"2026-02-18T08:04:09.859Z"}
+{"level":"info","message":"Database connected","timestamp":"2026-02-18T08:04:12.038Z"}
+{"level":"info","message":"Hotel Service listening at: http://localhost:3001","timestamp":"2026-02-18T08:04:12.048Z"}
+{"level":"info","message":"Database connected","timestamp":"2026-02-18T08:04:16.856Z"}
+{"level":"info","message":"Hotel Service listening at: http://localhost:3001","timestamp":"2026-02-18T08:04:16.866Z"}
+{"level":"info","message":"Database connected","timestamp":"2026-02-18T08:04:34.732Z"}
+{"level":"info","message":"Hotel Service listening at: http://localhost:3001","timestamp":"2026-02-18T08:04:34.743Z"}
+{"level":"info","message":"Database connected","timestamp":"2026-02-18T08:04:51.763Z"}
+{"level":"info","message":"Hotel Service listening at: http://localhost:3001","timestamp":"2026-02-18T08:04:51.774Z"}
+{"level":"info","message":"Received kill signal, shutting down gracefully...","timestamp":"2026-02-18T08:05:11.792Z"}
