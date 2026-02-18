@@ -255,7 +255,7 @@ export default function Navbar() {
           {!isAdmin && (
             <NavMenu>
               <NavLink href="/">HOME</NavLink>
-              <NavLink href="#">ROOM</NavLink>
+              <NavLink href="/room">ROOM</NavLink>
               <NavLink href="#">SERVICE & FACILITIES</NavLink>
               <NavLink href="/admin/login">ADMIN</NavLink>
             </NavMenu>

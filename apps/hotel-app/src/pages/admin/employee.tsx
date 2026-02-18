@@ -79,6 +79,22 @@ const StatusBadge = styled.span`
   display: inline-block;
 `;
 
+const StatusSelect = styled.select<{ $status: string }>`
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background-color: ${(props) => (props.$status === 'Active' ? '#4CAF50' : '#ef4444')};
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+  outline: none;
+  cursor: pointer;
+
+  &:focus {
+     box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+  }
+`;
+
 const EmptyState = styled.div`
   text-align: center;
   padding: 40px;
@@ -227,6 +243,7 @@ interface Employee {
     emp_firstname: string;
     emp_lastname: string;
     emp_email: string;
+    status?: string;
     role?: {
         role_name: string;
     };
@@ -248,6 +265,26 @@ export default function ManageEmployee() {
         emp_password: '',
         role_id: 'R03' // Default to Employee
     });
+
+    const handleStatusChange = async (id: string, newStatus: string) => {
+        setEmployees(prev => prev.map(emp =>
+            emp.employee_id === id ? { ...emp, status: newStatus } : emp
+        ));
+        try {
+            console.log(`Updating status for ${id} to ${newStatus}`);
+            // TODO: Implement API call
+            // await axios.patch(`/admin/employees/${id}/status`, { status: newStatus });
+            Swal.fire({
+                icon: 'success',
+                title: 'Updated',
+                text: `Status updated to ${newStatus}`,
+                timer: 1500,
+                showConfirmButton: false
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     const fetchEmployees = async () => {
         try {
@@ -343,9 +380,14 @@ export default function ManageEmployee() {
                                             <Td>{emp.emp_lastname}</Td>
                                             <Td>{emp.role?.role_name || '-'}</Td>
                                             <Td>
-                                                <StatusBadge>
-                                                    Active
-                                                </StatusBadge>
+                                                <StatusSelect
+                                                    $status={emp.status || 'Active'}
+                                                    value={emp.status || 'Active'}
+                                                    onChange={(e) => handleStatusChange(emp.employee_id, e.target.value)}
+                                                >
+                                                    <option value="Active">Active</option>
+                                                    <option value="Inactive">Inactive</option>
+                                                </StatusSelect>
                                             </Td>
                                         </tr>
                                     ))
