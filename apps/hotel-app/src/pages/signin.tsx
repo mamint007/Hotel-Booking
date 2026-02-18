@@ -233,6 +233,7 @@ export default function SignIn() {
         const token = res.data.data.token
         console.log(token)
         localStorage.setItem('token', token)
+        localStorage.setItem('user', JSON.stringify(res.data.data.member))
         swalInstance.fire({
           icon: 'success',
           title: 'Login Successful',

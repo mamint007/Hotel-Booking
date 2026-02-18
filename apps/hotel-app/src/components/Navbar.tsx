@@ -160,6 +160,7 @@ const DropdownItem = styled.div`
 
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminUser, setAdminUser] = useState<any>(null);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -180,6 +181,15 @@ export default function Navbar() {
         console.log(adminUserData)
       } catch (e) {
         console.error("Failed to parse admin user data", e);
+      }
+    }
+
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      try {
+        setUser(JSON.parse(userData));
+      } catch (e) {
+        console.error("Failed to parse user data", e);
       }
     }
 
@@ -214,7 +224,9 @@ export default function Navbar() {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setIsLoggedIn(false);
+    setUser(null);
     router.push('/signin');
   };
 
@@ -280,10 +292,27 @@ export default function Navbar() {
                 )}
               </div>
             ) : isLoggedIn ? (
-              <UserProfile onClick={handleLogout}>
-                <User size={24} />
-                <ChevronDown size={16} />
-              </UserProfile>
+              <div style={{ position: 'relative' }}>
+                <UserProfile onClick={() => setShowDropdown(!showDropdown)}>
+                  <User size={24} />
+                  <span style={{ fontSize: 13, fontWeight: 500, color: '#555' }}>
+                    {user?.m_firstname}
+                  </span>
+                  <ChevronDown size={16} />
+                </UserProfile>
+                {showDropdown && (
+                  <DropdownMenu>
+                    <DropdownHeader>
+                      <DropdownName>{user?.m_firstname} {user?.m_lastname}</DropdownName>
+                      <DropdownEmail>{user?.m_email}</DropdownEmail>
+                    </DropdownHeader>
+                    <DropdownItem onClick={handleLogout} style={{ color: '#ef4444' }}>
+                      <LogOut size={16} />
+                      Log Out
+                    </DropdownItem>
+                  </DropdownMenu>
+                )}
+              </div>
             ) : (
               <>
                 <Link href="/signin">
