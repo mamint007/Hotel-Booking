@@ -305,16 +305,28 @@ export default function BookingPage() {
     const { roomId, checkIn, checkOut } = router.query;
     const [room, setRoom] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [checkInDate, setCheckInDate] = useState('');
+    const [checkOutDate, setCheckOutDate] = useState('');
+
+    useEffect(() => {
+        if (router.isReady) {
+            if (checkIn) setCheckInDate(checkIn as string);
+            else {
+                const today = new Date();
+                setCheckInDate(today.toISOString().split('T')[0]);
+            }
+
+            if (checkOut) setCheckOutDate(checkOut as string);
+            else {
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                setCheckOutDate(tomorrow.toISOString().split('T')[0]);
+            }
+        }
+    }, [router.isReady, checkIn, checkOut]);
 
     useEffect(() => {
         if (roomId) {
-            // Find room from API or fetch single
-            // Since we don't have getRoomById API yet (or do we?), we can assume passing data or fetching all and filtering
-            // Let's implement fetch single room later or just filter for now
-            // Actually `getRooms` allows filtering by ID? No.
-            // But we have `adminController` `updateRoom`.
-            // Let's try fetching all and finding one for now, or just mock data to match UI.
-            // In production, should have `GET /rooms/:id`.
             fetchRoom(roomId as string);
         }
     }, [roomId]);
@@ -344,8 +356,23 @@ export default function BookingPage() {
     if (!room) return <Container><div style={{ textAlign: 'center' }}>Room not found</div></Container>;
 
     const price = parseFloat(room.price_per_night);
-    const nights = 1; // Calculate from dates
+
+    // Calculate nights
+    const start = new Date(checkInDate);
+    const end = new Date(checkOutDate);
+    let nights = 0;
+    if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        const diffTime = end.getTime() - start.getTime();
+        nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
+    if (nights < 1) nights = 1;
+
     const total = price * nights;
+
+    const getDayName = (dateStr: string) => {
+        if (!dateStr) return '';
+        return new Date(dateStr).toLocaleDateString('en-US', { weekday: 'long' });
+    };
 
     return (
         <UserAuthGuard>
@@ -378,8 +405,13 @@ export default function BookingPage() {
                                         <DateBox>
                                             <DateIcon><Calendar size={20} /></DateIcon>
                                             <DateInfo>
-                                                <DateValue>5 NOV 2025</DateValue>
-                                                <DateLabel>Wednesday</DateLabel>
+                                                <input
+                                                    type="date"
+                                                    value={checkInDate}
+                                                    onChange={(e) => setCheckInDate(e.target.value)}
+                                                    style={{ border: 'none', fontSize: '14px', fontWeight: 600, color: '#1f2937', background: 'transparent', outline: 'none' }}
+                                                />
+                                                <DateLabel>{getDayName(checkInDate)}</DateLabel>
                                             </DateInfo>
                                         </DateBox>
                                     </div>
@@ -388,13 +420,18 @@ export default function BookingPage() {
                                         <DateBox>
                                             <DateIcon><Calendar size={20} /></DateIcon>
                                             <DateInfo>
-                                                <DateValue>6 NOV 2025</DateValue>
-                                                <DateLabel>Thursday</DateLabel>
+                                                <input
+                                                    type="date"
+                                                    value={checkOutDate}
+                                                    onChange={(e) => setCheckOutDate(e.target.value)}
+                                                    style={{ border: 'none', fontSize: '14px', fontWeight: 600, color: '#1f2937', background: 'transparent', outline: 'none' }}
+                                                />
+                                                <DateLabel>{getDayName(checkOutDate)}</DateLabel>
                                             </DateInfo>
                                         </DateBox>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center' }}>
-                                        <NightCount><Bed size={16} /> 1 Night</NightCount>
+                                        <NightCount><Bed size={16} /> {nights} Night{nights > 1 ? 's' : ''}</NightCount>
                                     </div>
                                 </div>
                             </Section>
@@ -465,7 +502,7 @@ export default function BookingPage() {
                                     <span>Pay Now</span>
                                 </PriceRow>
                                 <PriceRow>
-                                    <span>Room Price ({nights} Night)</span>
+                                    <span>Room Price ({nights} Night{nights > 1 ? 's' : ''})</span>
                                     <span>THB {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                 </PriceRow>
                                 <PriceRow>

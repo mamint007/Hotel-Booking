@@ -41,7 +41,7 @@ axiosInstance.interceptors.response.use(
         const { response } = error
 
         // 1. Handle Invalid Credentials (0405) - Alert only, NO redirect
-        if (response && response.data?.res_code === '0405') {
+        if (response && response.data?.res_code === '0405' || response.data?.res_code === '1402') {
             // if (!isShowingAlert) {
             //     isShowingAlert = true;
             //     await Swal.fire({
