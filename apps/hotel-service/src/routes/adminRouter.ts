@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
-import { login, getAllEmployees, getAllRooms, getAllRoomTypes, getAllBookings, getAllPayments, getAllPromotions, createEmployee, updateEmployeeStatus, deleteUser, updateRoomStatus, createRoom, updateRoom, deleteRoom, createRoomType, updateRoomType, deleteRoomType, getMe } from "../controller/adminController"
+import { login, getAllEmployees, getAllRooms, getAllRoomTypes, getAllBookings, getAllPayments, getAllPromotions, createEmployee, updateEmployeeStatus, deleteUser, updateRoomStatus, createRoom, updateRoom, deleteRoom, createRoomType, updateRoomType, deleteRoomType, getMe, createPromotion, updatePromotion, deletePromotion } from "../controller/adminController"
 import { getAllUsers } from "../controller/userController"
 
 import { verifyAdminToken } from '../middleware/authMiddleware';
@@ -283,6 +283,51 @@ router.get(
             res_code: '0000',
             res_desc: 'Get All Promotions successfully',
             data: res.locals.promotions
+        }
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.post(
+    '/promotions',
+    verifyAdminToken(),
+    createPromotion(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Create Promotion successfully',
+            data: res.locals.promotion
+        }
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.put(
+    '/promotions/:id',
+    verifyAdminToken(),
+    updatePromotion(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Update Promotion successfully',
+            data: res.locals.promotion
+        }
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.delete(
+    '/promotions/:id',
+    verifyAdminToken(),
+    deletePromotion(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Delete Promotion successfully',
+            data: res.locals.response
         }
         res.json(res.locals.response)
         next()

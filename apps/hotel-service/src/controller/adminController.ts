@@ -255,12 +255,12 @@ export const deleteUser = () => async (req: Request, res: Response, next: NextFu
         const { id } = req.params;
 
         if (!id) {
-            return next(new Error('User ID is required')); // Should use defined error
+            return next(new ServiceError(AdminMasterError.ERR_USER_ID_REQUIRED));
         }
 
         const user = await MemberModel.findByPk(id);
         if (!user) {
-            return next(new Error('User not found')); // Should use defined error
+            return next(new ServiceError(AdminMasterError.ERR_USER_NOT_FOUND));
         }
 
         user.is_deleted = true;
@@ -358,19 +358,19 @@ export const updateRoom = () => async (req: Request, res: Response, next: NextFu
         }
 
         if (!id) {
-            return next(new Error('Room ID is required'));
+            return next(new ServiceError(AdminMasterError.ERR_ROOM_ID_REQUIRED));
         }
 
         const room = await RoomModel.findByPk(id);
         if (!room) {
-            return next(new Error('Room not found'));
+            return next(new ServiceError(AdminMasterError.ERR_ROOM_NOT_FOUND));
         }
 
         // Check if new room_number already exists (and is not that of the current room)
         if (room_number && room_number !== room.room_number) {
             const existingRoomByNumber = await RoomModel.findOne({ where: { room_number } });
             if (existingRoomByNumber) {
-                return next(new Error('Room Number already exists'));
+                return next(new ServiceError(AdminMasterError.ERR_ROOM_NUMBER_EXISTS));
             }
         }
 
@@ -414,12 +414,12 @@ export const updateRoomStatus = () => async (req: Request, res: Response, next: 
         const { room_status } = req.body;
 
         if (!id || !room_status) {
-            return next(new Error('Room ID and status are required'));
+            return next(new ServiceError(AdminMasterError.ERR_ROOM_UPDATE_REQUIRED));
         }
 
         const room = await RoomModel.findByPk(id);
         if (!room) {
-            return next(new Error('Room not found'));
+            return next(new ServiceError(AdminMasterError.ERR_ROOM_NOT_FOUND));
         }
 
         room.room_status = room_status;
@@ -438,12 +438,12 @@ export const deleteRoom = () => async (req: Request, res: Response, next: NextFu
         const { id } = req.params;
 
         if (!id) {
-            return next(new Error('Room ID is required'));
+            return next(new ServiceError(AdminMasterError.ERR_ROOM_ID_REQUIRED));
         }
 
         const room = await RoomModel.findByPk(id);
         if (!room) {
-            return next(new Error('Room not found'));
+            return next(new ServiceError(AdminMasterError.ERR_ROOM_NOT_FOUND));
         }
 
         await room.destroy();
@@ -461,7 +461,7 @@ export const createRoomType = () => async (req: Request, res: Response, next: Ne
         const { room_type_name } = req.body;
 
         if (!room_type_name) {
-            return next(new Error('Room type name is required'));
+            return next(new ServiceError(AdminMasterError.ERR_ROOM_TYPE_NAME_REQUIRED));
         }
 
         // Generate Room Type ID (e.g., T01, T02)
@@ -496,12 +496,12 @@ export const updateRoomType = () => async (req: Request, res: Response, next: Ne
         const { room_type_name } = req.body;
 
         if (!id || !room_type_name) {
-            return next(new Error('Room Type ID and name are required'));
+            return next(new ServiceError(AdminMasterError.ERR_ROOM_TYPE_UPDATE_REQUIRED));
         }
 
         const roomType = await RoomTypeModel.findByPk(id);
         if (!roomType) {
-            return next(new Error('Room Type not found'));
+            return next(new ServiceError(AdminMasterError.ERR_ROOM_TYPE_NOT_FOUND));
         }
 
         await roomType.update({
@@ -521,18 +521,18 @@ export const deleteRoomType = () => async (req: Request, res: Response, next: Ne
         const { id } = req.params;
 
         if (!id) {
-            return next(new Error('Room Type ID is required'));
+            return next(new ServiceError(AdminMasterError.ERR_ROOM_TYPE_ID_REQUIRED));
         }
 
         const roomType = await RoomTypeModel.findByPk(id);
         if (!roomType) {
-            return next(new Error('Room Type not found'));
+            return next(new ServiceError(AdminMasterError.ERR_ROOM_TYPE_NOT_FOUND));
         }
 
         // Check if room type is in use
         const roomCount = await RoomModel.count({ where: { room_type_id: id } });
         if (roomCount > 0) {
-            return next(new Error('Cannot delete Room Type because it is in use by rooms'));
+            return next(new ServiceError(AdminMasterError.ERR_ROOM_TYPE_IN_USE));
         }
 
         await roomType.destroy();
@@ -565,5 +565,103 @@ export const getMe = () => async (req: Request, res: Response, next: NextFunctio
 
     } catch (error) {
         next(error)
+    }
+}
+
+export const createPromotion = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { promo_name, discount_value, usage_per_user, promo_start_date, promo_end_date, promo_detail } = req.body;
+
+        if (!res.locals.user || !res.locals.user.id) {
+            // Fallback if not set but verifyAdminToken should set it.
+            // But verifyAdminToken sets res.locals.user = decoded; decoded token has id.
+        }
+        const employee_id = res.locals.user?.id;
+
+        if (!promo_name || !discount_value || !usage_per_user || !promo_start_date || !promo_end_date || !promo_detail) {
+            return next(new ServiceError(AdminMasterError.ERR_PROMOTION_CREATE_REQUIRED));
+        }
+
+        // Generate ID
+        const lastPromo = await PromotionModel.findOne({
+            order: [['promo_id', 'DESC']]
+        });
+
+        let nextId = 'P000001';
+        if (lastPromo && lastPromo.promo_id) {
+            const lastIdNum = parseInt(lastPromo.promo_id.substring(1));
+            if (!isNaN(lastIdNum)) {
+                nextId = `P${(lastIdNum + 1).toString().padStart(6, '0')}`;
+            }
+        }
+
+        const newPromo = await PromotionModel.create({
+            promo_id: nextId,
+            promo_name,
+            discount_value,
+            usage_per_user,
+            promo_start_date,
+            promo_end_date,
+            promo_detail,
+            is_active: 'A',
+            employee_id
+        });
+
+        res.locals.promotion = newPromo;
+        next();
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const updatePromotion = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { promo_name, discount_value, usage_per_user, promo_start_date, promo_end_date, promo_detail, is_active } = req.body;
+
+        if (!id) {
+            return next(new ServiceError(AdminMasterError.ERR_PROMOTION_ID_REQUIRED));
+        }
+
+        const promo = await PromotionModel.findByPk(id);
+        if (!promo) {
+            return next(new ServiceError(AdminMasterError.ERR_PROMOTION_NOT_FOUND));
+        }
+
+        const updates: any = {};
+        if (promo_name !== undefined) updates.promo_name = promo_name;
+        if (discount_value !== undefined) updates.discount_value = discount_value;
+        if (usage_per_user !== undefined) updates.usage_per_user = usage_per_user;
+        if (promo_start_date !== undefined) updates.promo_start_date = promo_start_date;
+        if (promo_end_date !== undefined) updates.promo_end_date = promo_end_date;
+        if (promo_detail !== undefined) updates.promo_detail = promo_detail;
+        if (is_active !== undefined) updates.is_active = is_active;
+
+        await promo.update(updates);
+
+        res.locals.promotion = promo;
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const deletePromotion = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+
+        if (!id) return next(new ServiceError(AdminMasterError.ERR_PROMOTION_ID_REQUIRED));
+
+        const promo = await PromotionModel.findByPk(id);
+        if (!promo) return next(new ServiceError(AdminMasterError.ERR_PROMOTION_NOT_FOUND));
+
+        await promo.destroy();
+
+        res.locals.response = { message: 'Promotion deleted successfully' };
+        next();
+
+    } catch (error) {
+        next(error);
     }
 }

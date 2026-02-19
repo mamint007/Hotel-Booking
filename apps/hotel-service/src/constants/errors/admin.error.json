@@ -79,6 +79,110 @@
             "th": "หมายเลขห้องพักนี้มีอยู่ในระบบแล้ว"
         }
     },
+    "ERR_USER_ID_REQUIRED": {
+        "statusCode": 400,
+        "resCode": "1411",
+        "resDesc": {
+            "en": "User ID is required.",
+            "th": "กรุณาระบุรหัสผู้ใช้งาน"
+        }
+    },
+    "ERR_USER_NOT_FOUND": {
+        "statusCode": 404,
+        "resCode": "1412",
+        "resDesc": {
+            "en": "User not found.",
+            "th": "ไม่พบผู้ใช้งาน"
+        }
+    },
+    "ERR_ROOM_ID_REQUIRED": {
+        "statusCode": 400,
+        "resCode": "1413",
+        "resDesc": {
+            "en": "Room ID is required.",
+            "th": "กรุณาระบุรหัสห้องพัก"
+        }
+    },
+    "ERR_ROOM_NOT_FOUND": {
+        "statusCode": 404,
+        "resCode": "1414",
+        "resDesc": {
+            "en": "Room not found.",
+            "th": "ไม่พบห้องพัก"
+        }
+    },
+    "ERR_ROOM_TYPE_NAME_REQUIRED": {
+        "statusCode": 400,
+        "resCode": "1415",
+        "resDesc": {
+            "en": "Room type name is required.",
+            "th": "กรุณาระบุชื่อประเภทห้องพัก"
+        }
+    },
+    "ERR_ROOM_TYPE_ID_REQUIRED": {
+        "statusCode": 400,
+        "resCode": "1416",
+        "resDesc": {
+            "en": "Room Type ID is required.",
+            "th": "กรุณาระบุรหัสประเภทห้องพัก"
+        }
+    },
+    "ERR_ROOM_TYPE_NOT_FOUND": {
+        "statusCode": 404,
+        "resCode": "1417",
+        "resDesc": {
+            "en": "Room Type not found.",
+            "th": "ไม่พบประเภทห้องพัก"
+        }
+    },
+    "ERR_ROOM_TYPE_IN_USE": {
+        "statusCode": 400,
+        "resCode": "1418",
+        "resDesc": {
+            "en": "Cannot delete Room Type because it is in use by rooms.",
+            "th": "ไม่สามารถลบประเภทห้องพักได้เนื่องจากมีการใช้งานอยู่"
+        }
+    },
+    "ERR_ROOM_UPDATE_REQUIRED": {
+        "statusCode": 400,
+        "resCode": "1422",
+        "resDesc": {
+            "en": "Room ID and status are required.",
+            "th": "กรุณาระบุรหัสห้องพักและสถานะ"
+        }
+    },
+    "ERR_ROOM_TYPE_UPDATE_REQUIRED": {
+        "statusCode": 400,
+        "resCode": "1423",
+        "resDesc": {
+            "en": "Room Type ID and name are required.",
+            "th": "กรุณาระบุรหัสประเภทห้องพักและชื่อประเภทห้องพัก"
+        }
+    },
+    "ERR_PROMOTION_CREATE_REQUIRED": {
+        "statusCode": 400,
+        "resCode": "1419",
+        "resDesc": {
+            "en": "All promotion fields are required.",
+            "th": "กรุณากรอกข้อมูลโปรโมชั่นให้ครบถ้วน"
+        }
+    },
+    "ERR_PROMOTION_ID_REQUIRED": {
+        "statusCode": 400,
+        "resCode": "1420",
+        "resDesc": {
+            "en": "Promotion ID is required.",
+            "th": "กรุณาระบุรหัสโปรโมชั่น"
+        }
+    },
+    "ERR_PROMOTION_NOT_FOUND": {
+        "statusCode": 404,
+        "resCode": "1421",
+        "resDesc": {
+            "en": "Promotion not found.",
+            "th": "ไม่พบโปรโมชั่น"
+        }
+    },
     "TOKEN_EXPIRED": {
         "statusCode": 401,
         "resCode": "0406",

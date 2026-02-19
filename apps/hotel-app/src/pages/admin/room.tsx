@@ -257,6 +257,7 @@ export default function ManageRoom() {
     const [submitting, setSubmitting] = useState(false);
     const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [imageError, setImageError] = useState('');
 
     // Form State
     const [formData, setFormData] = useState({
@@ -311,6 +312,7 @@ export default function ManageRoom() {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             setSelectedFile(e.target.files[0]);
+            setImageError('');
         }
     };
 
@@ -334,6 +336,7 @@ export default function ManageRoom() {
     const handleAddClick = () => {
         setEditMode(false);
         setSelectedFile(null);
+        setImageError('');
         setFormData({
             room_id: '',
             room_number: '',
@@ -372,6 +375,12 @@ export default function ManageRoom() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!editMode && !selectedFile) {
+            setImageError('Please select a room image');
+            return;
+        }
+
         setSubmitting(true);
 
         try {
@@ -647,6 +656,7 @@ export default function ManageRoom() {
                                             onChange={handleFileChange}
                                             accept="image/*"
                                         />
+                                        {imageError && <span style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', display: 'block' }}>{imageError}</span>}
                                         {editMode && !selectedFile && (
                                             <span style={{ fontSize: '12px', color: '#6b7280' }}>Do not upload if you don't want to change current image</span>
                                         )}
