@@ -243,7 +243,7 @@ interface Employee {
     emp_firstname: string;
     emp_lastname: string;
     emp_email: string;
-    status?: boolean;
+    is_active?: string;
     role?: {
         role_name: string;
     };
@@ -267,17 +267,17 @@ export default function ManageEmployee() {
     });
 
     const handleStatusChange = async (id: string, newStatus: boolean) => {
+        const statusChar = newStatus ? 'A' : 'I';
         setEmployees(prev => prev.map(emp =>
-            emp.employee_id === id ? { ...emp, status: newStatus } : emp
+            emp.employee_id === id ? { ...emp, is_active: statusChar } : emp
         ));
         try {
-            console.log(`Updating status for ${id} to ${newStatus}`);
-            // TODO: Implement API call
-            // await axios.patch(`/admin/employees/${id}/status`, { status: newStatus });
+            console.log(`Updating status for ${id} to ${statusChar}`);
+            await axios.patch(`/admin/employees/${id}/status`, { is_active: newStatus });
             Swal.fire({
                 icon: 'success',
                 title: 'Updated',
-                text: `Status updated to ${newStatus}`,
+                text: `Status updated to ${newStatus ? 'Active' : 'Inactive'}`,
                 timer: 1500,
                 showConfirmButton: false
             });
@@ -381,8 +381,8 @@ export default function ManageEmployee() {
                                             <Td>{emp.role?.role_name || '-'}</Td>
                                             <Td>
                                                 <StatusSelect
-                                                    $status={emp.status ?? true}
-                                                    value={emp.status ? "1" : "0"}
+                                                    $status={emp.is_active === 'A'}
+                                                    value={emp.is_active === 'A' ? "1" : "0"}
                                                     onChange={(e) => handleStatusChange(emp.employee_id, e.target.value === "1")}
                                                 >
                                                     <option value="1">Active</option>

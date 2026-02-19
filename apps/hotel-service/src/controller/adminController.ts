@@ -226,10 +226,10 @@ export const createEmployee = () => async (req: Request, res: Response, next: Ne
 export const updateEmployeeStatus = () => async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
+        const { is_active } = req.body;
 
-        if (!id || status === undefined) {
-            return next(new ServiceError(AdminMasterError.ERR_EMPLOYEE_UPDATE_REQUIRED || 'Employee ID and status are required'));
+        if (!id || is_active === undefined) {
+            return next(new ServiceError(AdminMasterError.ERR_EMPLOYEE_UPDATE_REQUIRED || 'Employee ID and is_active are required'));
         }
 
         const employee = await EmployeeModel.findByPk(id);
@@ -237,7 +237,7 @@ export const updateEmployeeStatus = () => async (req: Request, res: Response, ne
             return next(new ServiceError(AdminMasterError.ERR_EMPLOYEE_NOT_FOUND || 'Employee not found'));
         }
 
-        employee.status = status;
+        employee.is_active = is_active ? 'A' : 'I';
         await employee.save();
 
         res.locals.employee = employee;

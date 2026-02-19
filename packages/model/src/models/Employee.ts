@@ -21,7 +21,7 @@ export class EmployeeModel extends Model<
     declare emp_tel: string
     declare emp_email: string
     declare emp_password: string
-    declare status: CreationOptional<boolean>
+    declare is_active: CreationOptional<string>
     declare role_id: string
     declare role?: NonAttribute<RoleModel>
 }
@@ -67,11 +67,11 @@ EmployeeModel.init(
             type: DataTypes.STRING(20),
             allowNull: false
         },
-        status: {
-            field: 'status',
-            type: DataTypes.BOOLEAN,
+        is_active: {
+            field: 'is_active',
+            type: DataTypes.CHAR(1),
             allowNull: false,
-            defaultValue: true
+            defaultValue: 'A'
         },
         role_id: {
             field: 'role_id',
