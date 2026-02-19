@@ -42,19 +42,19 @@ axiosInstance.interceptors.response.use(
 
         // 1. Handle Invalid Credentials (0405) - Alert only, NO redirect
         if (response && response.data?.res_code === '0405') {
-            if (!isShowingAlert) {
-                isShowingAlert = true;
-                await Swal.fire({
-                    icon: 'error',
-                    title: 'Login Failed',
-                    text: 'Invalid email or password.',
-                    confirmButtonText: 'OK',
-                    confirmButtonColor: '#ef4444',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false
-                });
-                isShowingAlert = false;
-            }
+            // if (!isShowingAlert) {
+            //     isShowingAlert = true;
+            //     await Swal.fire({
+            //         icon: 'error',
+            //         title: 'Login Failed',
+            //         text: 'Invalid email or password.',
+            //         confirmButtonText: 'OK',
+            //         confirmButtonColor: '#ef4444',
+            //         allowOutsideClick: false,
+            //         allowEscapeKey: false
+            //     });
+            //     isShowingAlert = false;
+            // }
             return Promise.reject(error);
         }
 
