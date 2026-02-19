@@ -300,8 +300,10 @@ export default function RoomPage() {
       router.push('/signin');
       return;
     }
-    // Future booking logic here
-    console.log("Booking room:", room);
+    router.push({
+      pathname: '/booking',
+      query: { roomId: room.room_id }
+    });
   };
 
   const getImageUrl = (path?: string) => {
