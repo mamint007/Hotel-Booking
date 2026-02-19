@@ -1,8 +1,9 @@
 import styled from "styled-components";
 import Navbar from "../components/Navbar";
 import { Calendar, User } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import axios from "../helpers/axios";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -229,146 +230,218 @@ const BookButton = styled.button`
   }
 `;
 
+interface Room {
+  room_id: string;
+  room_number: string;
+  floor: number;
+  price_per_night: string;
+  bed_type: string;
+  bed_quantity: number;
+  max_guest: number;
+  room_status: string;
+  room_type: {
+    room_type_name: string;
+  };
+  room_image?: string;
+}
+
 export default function RoomPage() {
-    const router = useRouter();
-    const [priceRange, setPriceRange] = useState([0, 5000]);
-    const [activeTab, setActiveTab] = useState("ALL ROOM");
+  const router = useRouter();
+  const [priceRange, setPriceRange] = useState([0, 10000]);
+  const [activeTab, setActiveTab] = useState("ALL ROOM");
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [roomTypes, setRoomTypes] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    const rooms = [
-        {
-            id: 1,
-            name: "Standard Room",
-            description: "Experience comfort in our Standard Room, featuring modern amenities and a cozy atmosphere perfect for relaxation after a day of exploring.",
-            type: "STANDARD ROOM"
-        },
-        {
-            id: 2,
-            name: "Deluxe Room",
-            description: "Upgrade your stay with our Deluxe Room, offering more space, premium bedding, and stunning views of the city skyline.",
-            type: "DELUXE ROOM"
-        },
-        {
-            id: 3,
-            name: "Suite Room",
-            description: "Indulge in luxury with our spacious Suite Room, complete with a separate living area, king-sized bed, and exclusive access to the executive lounge.",
-            type: "SUITE ROOM"
-        }
-    ];
+  const fetchRoomTypes = async () => {
+    try {
+      const res = await axios.get('/rooms/types');
+      if (res.data && res.data.res_code === '0000') {
+        const types = res.data.data.map((rt: any) => rt.room_type_name);
+        setRoomTypes(types);
+      }
+    } catch (error) {
+      console.error("Failed to fetch room types", error);
+    }
+  };
 
-    const filteredRooms = activeTab === "ALL ROOM"
-        ? rooms
-        : rooms.filter(room => room.type === activeTab);
+  useEffect(() => {
+    fetchRoomTypes();
+  }, []);
 
-    const handleBook = (room: any) => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            router.push('/signin');
-            return;
-        }
-        // Future booking logic here
-        console.log("Booking room:", room);
-    };
+  const fetchRooms = async () => {
+    try {
+      const params: any = {
+        minPrice: priceRange[0],
+        maxPrice: priceRange[1]
+      };
+      if (activeTab !== "ALL ROOM") {
+        params.type = activeTab;
+      }
 
-    return (
-        <>
-            <Navbar />
-            <Container>
-                {/* Search Header */}
-                <SearchSection>
-                    <SearchBarContainer>
-                        <InputGroup>
-                            <Calendar size={20} color="#9ca3af" />
-                            <Label>
-                                <LabelTitle>CHECK-IN</LabelTitle>
-                                <LabelValue>5 NOV 2025</LabelValue>
-                            </Label>
-                        </InputGroup>
+      const res = await axios.get('/rooms', { params });
+      if (res.data && res.data.res_code === '0000') {
+        setRooms(res.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch rooms", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                        <InputGroup>
-                            <Calendar size={20} color="#9ca3af" />
-                            <Label>
-                                <LabelTitle>CHECK-OUT</LabelTitle>
-                                <LabelValue>6 NOV 2025</LabelValue>
-                            </Label>
-                        </InputGroup>
+  useEffect(() => {
+    fetchRooms();
+  }, [activeTab, priceRange]); // Re-fetch when filters change (debouncing recommended for price range in production)
 
-                        <InputGroup>
-                            <User size={20} color="#9ca3af" />
-                            <Label>
-                                <LabelTitle>GUESTS</LabelTitle>
-                                <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                                    <span style={{ fontSize: 13, fontWeight: 500 }}>2 Adults</span>
-                                    <span style={{ color: '#d1d5db' }}>|</span>
-                                    <span style={{ fontSize: 13, fontWeight: 500 }}>0 Children</span>
-                                </div>
-                            </Label>
-                        </InputGroup>
+  const handleBook = (room: Room) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/signin');
+      return;
+    }
+    // Future booking logic here
+    console.log("Booking room:", room);
+  };
 
-                        <CheckButton>CHECK AVAILABILITY</CheckButton>
-                    </SearchBarContainer>
-                </SearchSection>
+  const getImageUrl = (path?: string) => {
+    if (!path) return 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=3270&auto=format&fit=crop';
+    return `http://localhost:3001${path}`;
+  };
 
-                {/* Content */}
-                <ContentWrapper>
-                    {/* Sidebar */}
-                    <Sidebar>
-                        <SidebarTitle>
-                            <span>Rate Per Night</span>
-                            <span style={{ fontSize: 14, color: '#6b7280', fontWeight: 400 }}>THB</span>
-                        </SidebarTitle>
+  const getBedTypeName = (type: string) => {
+    switch (type) {
+      case 'S': return 'Single Bed';
+      case 'D': return 'Double Bed';
+      case 'K': return 'King Bed';
+      case 'Q': return 'Queen Bed';
+      default: return type;
+    }
+  }
 
-                        <PriceRangeContainer>
-                            <RangeSlider
-                                type="range"
-                                min="0"
-                                max="10000"
-                                value={priceRange[1]}
-                                onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                            />
-                            <PriceInputs>
-                                <PriceInputGroup>
-                                    <PriceLabel>Min Price</PriceLabel>
-                                    <PriceValueInput type="number" value={priceRange[0]} readOnly />
-                                </PriceInputGroup>
-                                <PriceInputGroup>
-                                    <PriceLabel>Max Price</PriceLabel>
-                                    <PriceValueInput type="number" value={priceRange[1]} onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])} />
-                                </PriceInputGroup>
-                            </PriceInputs>
-                        </PriceRangeContainer>
-                    </Sidebar>
+  return (
+    <>
+      <Navbar />
+      <Container>
+        {/* Search Header */}
+        <SearchSection>
+          <SearchBarContainer>
+            <InputGroup>
+              <Calendar size={20} color="#9ca3af" />
+              <Label>
+                <LabelTitle>CHECK-IN</LabelTitle>
+                <LabelValue>5 NOV 2025</LabelValue>
+              </Label>
+            </InputGroup>
 
-                    {/* Main List */}
-                    <MainContent>
-                        <TabsContainer>
-                            {["ALL ROOM", "STANDARD ROOM", "DELUXE ROOM", "SUITE ROOM"].map(tab => (
-                                <Tab
-                                    key={tab}
-                                    active={activeTab === tab}
-                                    onClick={() => setActiveTab(tab)}
-                                >
-                                    {tab}
-                                </Tab>
-                            ))}
-                        </TabsContainer>
+            <InputGroup>
+              <Calendar size={20} color="#9ca3af" />
+              <Label>
+                <LabelTitle>CHECK-OUT</LabelTitle>
+                <LabelValue>6 NOV 2025</LabelValue>
+              </Label>
+            </InputGroup>
 
-                        <RoomListContainer>
-                            {filteredRooms.map(room => (
-                                <RoomCard key={room.id}>
-                                    <RoomImage />
-                                    <RoomDetails>
-                                        <RoomTitle>{room.name}</RoomTitle>
-                                        <RoomDescription>
-                                            {room.description}
-                                        </RoomDescription>
-                                        <BookButton onClick={() => handleBook(room)}>BOOK</BookButton>
-                                    </RoomDetails>
-                                </RoomCard>
-                            ))}
-                        </RoomListContainer>
-                    </MainContent>
-                </ContentWrapper>
-            </Container>
-        </>
-    );
+            <InputGroup>
+              <User size={20} color="#9ca3af" />
+              <Label>
+                <LabelTitle>GUESTS</LabelTitle>
+                <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                  <span style={{ fontSize: 13, fontWeight: 500 }}>2 Adults</span>
+                  <span style={{ color: '#d1d5db' }}>|</span>
+                  <span style={{ fontSize: 13, fontWeight: 500 }}>0 Children</span>
+                </div>
+              </Label>
+            </InputGroup>
+
+            <CheckButton>CHECK AVAILABILITY</CheckButton>
+          </SearchBarContainer>
+        </SearchSection>
+
+        {/* Content */}
+        <ContentWrapper>
+          {/* Sidebar */}
+          <Sidebar>
+            <SidebarTitle>
+              <span>Rate Per Night</span>
+              <span style={{ fontSize: 14, color: '#6b7280', fontWeight: 400 }}>THB</span>
+            </SidebarTitle>
+
+            <PriceRangeContainer>
+              <RangeSlider
+                type="range"
+                min="0"
+                max="10000"
+                value={priceRange[1]}
+                onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
+              />
+              <PriceInputs>
+                <PriceInputGroup>
+                  <PriceLabel>Min Price</PriceLabel>
+                  <PriceValueInput type="number" value={priceRange[0]} readOnly />
+                </PriceInputGroup>
+                <PriceInputGroup>
+                  <PriceLabel>Max Price</PriceLabel>
+                  <PriceValueInput type="number" value={priceRange[1]} onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])} />
+                </PriceInputGroup>
+              </PriceInputs>
+            </PriceRangeContainer>
+          </Sidebar>
+
+          {/* Main List */}
+          <MainContent>
+            <TabsContainer>
+              <Tab
+                active={activeTab === "ALL ROOM"}
+                onClick={() => setActiveTab("ALL ROOM")}
+              >
+                ALL ROOM
+              </Tab>
+              {roomTypes.length > 0 ? roomTypes.map(tab => (
+                <Tab
+                  key={tab}
+                  active={activeTab === tab}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  {tab}
+                </Tab>
+              )) : ["STANDARD ROOM", "DELUXE ROOM", "SUITE ROOM"].map(tab => (
+                <Tab
+                  key={tab}
+                  active={activeTab === tab}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  {tab}
+                </Tab>
+              ))}
+            </TabsContainer>
+
+            <RoomListContainer>
+              {loading ? (
+                <div style={{ textAlign: 'center', color: '#6b7280', padding: '40px' }}>Loading rooms...</div>
+              ) : rooms.length > 0 ? (
+                rooms.map(room => (
+                  <RoomCard key={room.room_id}>
+                    <RoomImage style={{ backgroundImage: `url('${getImageUrl(room.room_image)}')` }} />
+                    <RoomDetails>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                        <RoomTitle>{room.room_type?.room_type_name} {room.room_number}</RoomTitle>
+                        <span style={{ fontSize: '18px', fontWeight: 600, color: '#4CAF50' }}>฿{parseFloat(room.price_per_night).toLocaleString()}</span>
+                      </div>
+                      <RoomDescription>
+                        Floor {room.floor} • {getBedTypeName(room.bed_type)} x{room.bed_quantity} • Max {room.max_guest} Guests
+                      </RoomDescription>
+                      <BookButton onClick={() => handleBook(room)}>BOOK NOW</BookButton>
+                    </RoomDetails>
+                  </RoomCard>
+                ))
+              ) : (
+                <div style={{ textAlign: 'center', color: '#6b7280', padding: '40px' }}>No rooms found.</div>
+              )}
+            </RoomListContainer>
+          </MainContent>
+        </ContentWrapper>
+      </Container>
+    </>
+  );
 }
