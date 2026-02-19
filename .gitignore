@@ -30,6 +30,8 @@ dist
 # Uploads
 apps/hotel-service/public/uploads
 
+#logs
+apps/hotel-service/logs
 
 # Debug
 npm-debug.log*
