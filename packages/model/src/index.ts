@@ -11,6 +11,7 @@ import { PromotionModel } from './models/Promotion'
 import { PaymentModel } from './models/Payment'
 import { AmenityModel } from './models/Amenity'
 import { RoomTypeDetailModel } from './models/RoomTypeDetail'
+import { CheckInCheckOutModel } from './models/CheckInCheckOut'
 
 // Define Relationships
 RoleModel.hasMany(EmployeeModel, {
@@ -147,6 +148,18 @@ AmenityModel.belongsToMany(RoomModel, {
     as: 'rooms'
 });
 
+BookingModel.hasOne(CheckInCheckOutModel, {
+    foreignKey: 'booking_id',
+    sourceKey: 'booking_id',
+    as: 'stay_details'
+});
+
+CheckInCheckOutModel.belongsTo(BookingModel, {
+    foreignKey: 'booking_id',
+    targetKey: 'booking_id',
+    as: 'booking'
+});
+
 export * from './sequelize'
 export * from './models/Member'
 export * from './models/Role'
@@ -160,3 +173,4 @@ export * from './models/Promotion'
 export * from './models/Payment'
 export * from './models/Amenity'
 export * from './models/RoomTypeDetail'
+export * from './models/CheckInCheckOut'

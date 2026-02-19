@@ -9,6 +9,7 @@ import {
 import { sequelize } from '../sequelize'
 import { MemberModel } from './Member'
 import { BookingDetailModel } from './BookingDetail'
+import { CheckInCheckOutModel } from './CheckInCheckOut'
 
 export class BookingModel extends Model<
     InferAttributes<BookingModel>,
@@ -24,6 +25,7 @@ export class BookingModel extends Model<
 
     declare member?: NonAttribute<MemberModel>
     declare booking_details?: NonAttribute<BookingDetailModel[]>
+    declare stay_details?: NonAttribute<CheckInCheckOutModel>
 }
 
 BookingModel.init(

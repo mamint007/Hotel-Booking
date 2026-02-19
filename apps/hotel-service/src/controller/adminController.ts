@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ServiceError } from "@hotel/helpers"
 import AdminMasterError from '../constants/errors/admin.error.json'
-import { EmployeeModel, RoleModel, RoomModel, RoomTypeModel, BookingModel, MemberModel, PaymentTypeModel, BookingDetailModel, PaymentModel, PromotionModel, AmenityModel, RoomTypeDetailModel } from "@hotel/models"
+import { EmployeeModel, RoleModel, RoomModel, RoomTypeModel, BookingModel, MemberModel, PaymentTypeModel, BookingDetailModel, CheckInCheckOutModel, PaymentModel, PromotionModel, AmenityModel, RoomTypeDetailModel } from "@hotel/models"
 import jwt from 'jsonwebtoken'
 import path from 'path';
 import fs from 'fs';
@@ -146,6 +146,11 @@ export const getAllBookings = () => async (req: Request, res: Response, next: Ne
                     model: PaymentTypeModel,
                     as: 'payment_type',
                     attributes: ['payment_type_name']
+                },
+                {
+                    model: CheckInCheckOutModel,
+                    as: 'stay_details',
+                    attributes: ['checkin_date', 'checkout_date']
                 },
                 {
                     model: BookingDetailModel,
