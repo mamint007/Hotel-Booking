@@ -40,7 +40,26 @@ axiosInstance.interceptors.response.use(
     async (error) => {
         const { response } = error
 
-        // Handle Token Expired (406 from backend or 401)
+        // 1. Handle Invalid Credentials (0405) - Alert only, NO redirect
+        if (response && response.data?.res_code === '0405') {
+            if (!isShowingAlert) {
+                isShowingAlert = true;
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Login Failed',
+                    text: 'Invalid email or password.',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#ef4444',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
+                });
+                isShowingAlert = false;
+            }
+            return Promise.reject(error);
+        }
+
+        // 2. Handle Session Expired (0406 or 401)
+        // Note: Check this after 0405 to allow specific handling above
         if (response && (response.data?.res_code === '0406' || response.status === 401)) {
             if (isShowingAlert) {
                 return new Promise(() => { });
@@ -49,7 +68,7 @@ axiosInstance.interceptors.response.use(
             isShowingAlert = true;
 
             await Swal.fire({
-                icon: 'error',
+                icon: 'warning',
                 title: 'Session Expired',
                 text: 'Your session has expired. Please log in again.',
                 confirmButtonText: 'OK',
@@ -66,10 +85,16 @@ axiosInstance.interceptors.response.use(
             if (isAdminRequest) {
                 localStorage.removeItem('admin_token');
                 localStorage.removeItem('admin_user');
-                window.location.href = '/admin/login';
+                // Avoid loop if already on login page
+                if (!window.location.pathname.includes('/admin/login')) {
+                    window.location.href = '/admin/login';
+                }
             } else {
                 localStorage.removeItem('token');
-                window.location.href = '/signin';
+                // Avoid loop if already on signin page
+                if (!window.location.pathname.includes('/signin')) {
+                    window.location.href = '/signin';
+                }
             }
 
             return new Promise(() => { });
