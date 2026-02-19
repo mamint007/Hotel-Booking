@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { RoomModel, RoomTypeModel } from "@hotel/models";
+import { RoomModel, RoomTypeModel, AmenityModel } from "@hotel/models";
 import { Op, WhereOptions } from "sequelize";
 
 export const getRooms = () => async (req: Request, res: Response, next: NextFunction) => {
@@ -23,6 +23,11 @@ export const getRooms = () => async (req: Request, res: Response, next: NextFunc
             as: 'room_type',
             attributes: ['room_type_name'],
             required: true // Inner join ensures we only get rooms with a valid type
+        }, {
+            model: AmenityModel,
+            as: 'amenities',
+            attributes: ['amenity_name', 'amenity_icon'],
+            through: { attributes: [] }
         }];
 
         // Filter by Room Type if provided (and not 'ALL ROOM')

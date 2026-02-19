@@ -408,8 +408,23 @@ export default function BookingPage() {
                                             <span style={{ textDecoration: 'underline', cursor: 'pointer' }}>Edit Booking Details</span>
                                         </RoomMeta>
                                         <TagList>
-                                            <Tag>Free Wi-Fi</Tag>
-                                            <Tag>Parking</Tag>
+                                            {room.amenities?.map((amenity: any, index: number) => (
+                                                <Tag key={index} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    {amenity.amenity_icon && (
+                                                        <img
+                                                            src={`/amentity/${amenity.amenity_icon}`}
+                                                            alt={amenity.amenity_name}
+                                                            width={14}
+                                                            height={14}
+                                                            style={{ objectFit: 'contain' }} // Ensure icon fits well
+                                                        />
+                                                    )}
+                                                    {amenity.amenity_name}
+                                                </Tag>
+                                            ))}
+                                            {(!room.amenities || room.amenities.length === 0) && (
+                                                <Tag>No Amenities</Tag>
+                                            )}
                                         </TagList>
                                     </RoomInfo>
                                 </RoomCard>
