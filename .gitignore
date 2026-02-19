@@ -31,7 +31,7 @@ dist
 apps/hotel-service/public/uploads
 
 #logs
-apps/hotel-service/logs
+apps/hotel-service/logs/*.log 
 
 # Debug
 npm-debug.log*
