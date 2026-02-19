@@ -274,13 +274,17 @@ export default function ManageEmployee() {
         try {
             console.log(`Updating status for ${id} to ${statusChar}`);
             await axios.patch(`/admin/employees/${id}/status`, { is_active: newStatus });
-            Swal.fire({
-                icon: 'success',
-                title: 'Updated',
-                text: `Status updated to ${newStatus ? 'Active' : 'Inactive'}`,
-                timer: 1500,
-                showConfirmButton: false
-            });
+              const Toast = Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+            
+                        Toast.fire({
+                            icon: 'success',
+                            title: 'Status updated'
+                        })
         } catch (error) {
             console.error(error);
         }

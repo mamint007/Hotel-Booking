@@ -240,6 +240,23 @@ const SubmitButton = styled.button`
   }
 `;
 
+const StatusSelect = styled.select<{ status: string }>`
+  background-color: ${props => props.status === 'A' ? '#10b981' : '#ef4444'};
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  
+  option {
+    background-color: white;
+    color: black;
+  }
+`;
+
 interface Promotion {
     promo_id: string;
     promo_name: string;
@@ -403,6 +420,35 @@ export default function PromotionPage() {
         }
     };
 
+    const handleStatusChange = async (id: string, newStatus: string) => {
+        try {
+            await axios.put(`/admin/promotions/${id}`, { is_active: newStatus });
+            setPromotions(prev => prev.map(p =>
+                p.promo_id === id ? { ...p, is_active: newStatus } : p
+            ));
+
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1500
+            });
+
+            Toast.fire({
+                icon: 'success',
+                title: 'Status updated'
+            });
+
+        } catch (error) {
+            console.error("Status update error", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to update status'
+            });
+        }
+    };
+
     const formatDate = (dateString: string) => {
         if (!dateString) return '-';
         return new Date(dateString).toLocaleString('en-GB', {
@@ -457,9 +503,14 @@ export default function PromotionPage() {
                                             <Td style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={promo.promo_detail}>{promo.promo_detail}</Td>
                                             <Td>{promo.employee ? `${promo.employee.emp_firstname} ${promo.employee.emp_lastname}` : '-'}</Td>
                                             <Td>
-                                                <Badge active={promo.is_active === 'A'}>
-                                                    {promo.is_active === 'A' ? 'Active' : 'Inactive'}
-                                                </Badge>
+                                                <StatusSelect
+                                                    value={promo.is_active}
+                                                    status={promo.is_active}
+                                                    onChange={(e) => handleStatusChange(promo.promo_id, e.target.value)}
+                                                >
+                                                    <option value="A">Active</option>
+                                                    <option value="I">Inactive</option>
+                                                </StatusSelect>
                                             </Td>
                                             <Td>
                                                 <div style={{ display: 'flex' }}>
