@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import axios from "../helpers/axios";
 import { Calendar, Bed, Users, Wifi, Car, CreditCard, CheckCircle } from "lucide-react";
+import UserAuthGuard from "../components/UserAuthGuard";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -347,7 +348,7 @@ export default function BookingPage() {
     const total = price * nights;
 
     return (
-        <>
+        <UserAuthGuard>
             <Navbar />
             <Container>
                 <Wrapper>
@@ -482,6 +483,6 @@ export default function BookingPage() {
                     </ContentGrid>
                 </Wrapper>
             </Container>
-        </>
+        </UserAuthGuard>
     );
 }

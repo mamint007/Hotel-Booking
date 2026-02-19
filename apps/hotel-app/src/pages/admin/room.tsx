@@ -267,6 +267,7 @@ export default function ManageRoom() {
     const [imageError, setImageError] = useState('');
     const [amenities, setAmenities] = useState<Amenity[]>([]);
     const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+    const [imagePreview, setImagePreview] = useState<string>('');
 
     // Form State
     const [formData, setFormData] = useState({
@@ -333,8 +334,16 @@ export default function ManageRoom() {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
-            setSelectedFile(e.target.files[0]);
+            const file = e.target.files[0];
+            setSelectedFile(file);
             setImageError('');
+
+            // Create preview
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
         }
     };
 
@@ -363,6 +372,7 @@ export default function ManageRoom() {
             room_type_id: room.room_type_id
         });
         setSelectedAmenities(room.amenities?.map(a => a.amenity_id) || []);
+        setImagePreview(room.room_image ? `http://localhost:3001${room.room_image}` : '');
         setIsModalOpen(true);
     };
 
@@ -382,6 +392,7 @@ export default function ManageRoom() {
             room_type_id: roomTypes.length > 0 ? roomTypes[0].room_type_id : ''
         });
         setSelectedAmenities([]);
+        setImagePreview('');
         setIsModalOpen(true);
     };
 
@@ -710,6 +721,15 @@ export default function ManageRoom() {
                                             onChange={handleFileChange}
                                             accept="image/*"
                                         />
+                                        {imagePreview && (
+                                            <div style={{ marginTop: '10px' }}>
+                                                <img
+                                                    src={imagePreview}
+                                                    alt="Room Preview"
+                                                    style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+                                                />
+                                            </div>
+                                        )}
                                         {imageError && <span style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', display: 'block' }}>{imageError}</span>}
                                         {editMode && !selectedFile && (
                                             <span style={{ fontSize: '12px', color: '#6b7280' }}>Do not upload if you don't want to change current image</span>
