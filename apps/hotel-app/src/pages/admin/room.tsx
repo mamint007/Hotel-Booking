@@ -232,6 +232,12 @@ interface RoomType {
     room_type_name: string;
 }
 
+interface Amenity {
+    amenity_id: string;
+    amenity_name: string;
+    amenity_icon: string; // path
+}
+
 // Interface for Room
 interface Room {
     room_id: string;
@@ -247,6 +253,7 @@ interface Room {
         room_type_name: string;
     };
     room_image?: string;
+    amenities?: Amenity[];
 }
 
 export default function ManageRoom() {
@@ -258,6 +265,8 @@ export default function ManageRoom() {
     const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [imageError, setImageError] = useState('');
+    const [amenities, setAmenities] = useState<Amenity[]>([]);
+    const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -285,6 +294,18 @@ export default function ManageRoom() {
         }
     };
 
+
+    const fetchAmenities = async () => {
+        try {
+            const res = await axios.get('/admin/amenities');
+            if (res.data && res.data.res_code === '0000') {
+                setAmenities(res.data.data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch amenities", error);
+        }
+    };
+
     const fetchRoomTypes = async () => {
         try {
             const res = await axios.get('/admin/room-types');
@@ -302,6 +323,7 @@ export default function ManageRoom() {
     useEffect(() => {
         fetchRooms();
         fetchRoomTypes();
+        fetchAmenities();
     }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -314,6 +336,16 @@ export default function ManageRoom() {
             setSelectedFile(e.target.files[0]);
             setImageError('');
         }
+    };
+
+    const handleAmenityToggle = (amenityId: string) => {
+        setSelectedAmenities(prev => {
+            if (prev.includes(amenityId)) {
+                return prev.filter(id => id !== amenityId);
+            } else {
+                return [...prev, amenityId];
+            }
+        });
     };
 
     const handleEdit = (room: Room) => {
@@ -330,6 +362,7 @@ export default function ManageRoom() {
             room_status: room.room_status,
             room_type_id: room.room_type_id
         });
+        setSelectedAmenities(room.amenities?.map(a => a.amenity_id) || []);
         setIsModalOpen(true);
     };
 
@@ -348,6 +381,7 @@ export default function ManageRoom() {
             room_status: 'A',
             room_type_id: roomTypes.length > 0 ? roomTypes[0].room_type_id : ''
         });
+        setSelectedAmenities([]);
         setIsModalOpen(true);
     };
 
@@ -394,6 +428,9 @@ export default function ManageRoom() {
             data.append('max_guest', String(formData.max_guest));
             data.append('room_status', formData.room_status);
             data.append('room_type_id', formData.room_type_id);
+            if (selectedAmenities.length > 0) {
+                data.append('amenity_ids', selectedAmenities.join(','));
+            }
 
             if (selectedFile) {
                 data.append('room_image', selectedFile);
@@ -646,6 +683,23 @@ export default function ManageRoom() {
                                                 </option>
                                             ))}
                                         </Select>
+                                    </FormGroup>
+
+                                    <FormGroup style={{ gridColumn: '1 / -1' }}>
+                                        <Label>Amenities</Label>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '8px' }}>
+                                            {amenities.map(amenity => (
+                                                <label key={amenity.amenity_id} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', cursor: 'pointer' }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedAmenities.includes(amenity.amenity_id)}
+                                                        onChange={() => handleAmenityToggle(amenity.amenity_id)}
+                                                    />
+                                                    {amenity.amenity_icon && <img src={`/amentity/${amenity.amenity_icon}`} alt={amenity.amenity_name} width={20} height={20} />}
+                                                    {amenity.amenity_name}
+                                                </label>
+                                            ))}
+                                        </div>
                                     </FormGroup>
 
                                     <FormGroup>

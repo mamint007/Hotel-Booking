@@ -9,6 +9,8 @@ import { PaymentTypeModel } from './models/PaymentType'
 import { PromotionModel } from './models/Promotion'
 
 import { PaymentModel } from './models/Payment'
+import { AmenityModel } from './models/Amenity'
+import { RoomTypeDetailModel } from './models/RoomTypeDetail'
 
 // Define Relationships
 RoleModel.hasMany(EmployeeModel, {
@@ -129,6 +131,20 @@ PaymentModel.belongsTo(EmployeeModel, {
     foreignKey: 'employee_id',
     targetKey: 'employee_id',
     as: 'employee'
+});
+
+RoomModel.belongsToMany(AmenityModel, {
+    through: RoomTypeDetailModel,
+    foreignKey: 'room_id',
+    otherKey: 'amenity_id',
+    as: 'amenities'
+});
+
+AmenityModel.belongsToMany(RoomModel, {
+    through: RoomTypeDetailModel,
+    foreignKey: 'amenity_id',
+    otherKey: 'room_id',
+    as: 'rooms'
 });
 
 export * from './sequelize'

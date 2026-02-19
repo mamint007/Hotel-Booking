@@ -10,18 +10,47 @@ module.exports = {
                 type: DataTypes.CHAR(3)
             },
             amenity_name: {
-                allowNull: false, // Assuming name is required
+                allowNull: false,
                 type: DataTypes.STRING(50)
             },
             amenity_icon: {
-                allowNull: true, // Assuming icon can be null or required. Let's make it optional usually unless critical.
-                // But looking at the image, it has content.
-                // I'll make it nullable for safety or not null per convention?
-                // Usually icons are required for UI.
-                // The image doesn't show NOT NULL constraint explicitly but `amenity_name` is key.
+                allowNull: true,
                 type: DataTypes.STRING(255)
             }
         });
+
+        await queryInterface.bulkInsert('amenity', [
+            {
+                amenity_id: 'A01',
+                amenity_name: 'Free Wifi',
+                amenity_icon: 'wifi.svg'
+            },
+            {
+                amenity_id: 'A02',
+                amenity_name: 'Pool',
+                amenity_icon: 'pool.svg'
+            },
+            {
+                amenity_id: 'A03',
+                amenity_name: 'Break Fast',
+                amenity_icon: 'breakfast.svg'
+            },
+            {
+                amenity_id: 'A04',
+                amenity_name: 'Parking',
+                amenity_icon: 'parking.svg'
+            },
+            {
+                amenity_id: 'A05',
+                amenity_name: 'Fitness',
+                amenity_icon: 'fitness.png'
+            },
+            {
+                amenity_id: 'A06',
+                amenity_name: 'Mini Bar',
+                amenity_icon: 'minibar.svg'
+            }
+        ]);
     },
 
     down: async (queryInterface: QueryInterface) => {

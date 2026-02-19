@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ServiceError } from "@hotel/helpers"
 import AdminMasterError from '../constants/errors/admin.error.json'
-import { EmployeeModel, RoleModel, RoomModel, RoomTypeModel, BookingModel, MemberModel, PaymentTypeModel, BookingDetailModel, PaymentModel, PromotionModel } from "@hotel/models"
+import { EmployeeModel, RoleModel, RoomModel, RoomTypeModel, BookingModel, MemberModel, PaymentTypeModel, BookingDetailModel, PaymentModel, PromotionModel, AmenityModel, RoomTypeDetailModel } from "@hotel/models"
 import jwt from 'jsonwebtoken'
 import path from 'path';
 import fs from 'fs';
@@ -86,11 +86,19 @@ export const getAllEmployees = () => async (req: Request, res: Response, next: N
 export const getAllRooms = () => async (req: Request, res: Response, next: NextFunction) => {
     try {
         const rooms = await RoomModel.findAll({
-            include: [{
-                model: RoomTypeModel,
-                as: 'room_type',
-                attributes: ['room_type_name']
-            }],
+            include: [
+                {
+                    model: RoomTypeModel,
+                    as: 'room_type',
+                    attributes: ['room_type_name']
+                },
+                {
+                    model: AmenityModel,
+                    as: 'amenities',
+                    attributes: ['amenity_id', 'amenity_name', 'amenity_icon'],
+                    through: { attributes: [] }
+                }
+            ],
             order: [['room_number', 'ASC']]
         });
 
@@ -114,7 +122,18 @@ export const getAllRoomTypes = () => async (req: Request, res: Response, next: N
     }
 }
 
+export const getAllAmenities = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const amenities = await AmenityModel.findAll();
+        res.locals.amenities = amenities;
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
 export const getAllBookings = () => async (req: Request, res: Response, next: NextFunction) => {
+
     try {
         const bookings = await BookingModel.findAll({
             include: [
@@ -277,7 +296,7 @@ export const deleteUser = () => async (req: Request, res: Response, next: NextFu
 
 export const createRoom = () => async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { room_number, floor, price_per_night, bed_type, bed_quantity, max_guest, room_status, room_type_id } = req.body;
+        const { room_number, floor, price_per_night, bed_type, bed_quantity, max_guest, room_status, room_type_id, amenity_ids } = req.body;
         if (!room_number || !floor || !price_per_night || !bed_type || !bed_quantity || !max_guest || !room_status || !room_type_id) {
             return next(new ServiceError(AdminMasterError.ERR_ROOM_CREATE_REQUIRED));
         }
@@ -333,6 +352,25 @@ export const createRoom = () => async (req: Request, res: Response, next: NextFu
             fs.writeFileSync(path.join(uploadDir, filename), req.file.buffer);
         }
 
+        // Handle Amenities
+        if (amenity_ids) {
+            // amenity_ids might be a string (comma separated) or array
+            let ids: string[] = [];
+            if (Array.isArray(amenity_ids)) {
+                ids = amenity_ids;
+            } else if (typeof amenity_ids === 'string') {
+                ids = amenity_ids.split(',');
+            }
+
+            if (ids.length > 0) {
+                const details = ids.map(id => ({
+                    room_id: newRoom.room_id,
+                    amenity_id: id.trim()
+                }));
+                await RoomTypeDetailModel.bulkCreate(details);
+            }
+        }
+
         res.locals.room = newRoom;
         next();
 
@@ -345,7 +383,7 @@ export const createRoom = () => async (req: Request, res: Response, next: NextFu
 export const updateRoom = () => async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const { room_number, floor, price_per_night, bed_type, bed_quantity, max_guest, room_status, room_type_id } = req.body;
+        const { room_number, floor, price_per_night, bed_type, bed_quantity, max_guest, room_status, room_type_id, amenity_ids } = req.body;
 
         // Handle file upload manually if present
         let room_image = undefined;
@@ -396,6 +434,27 @@ export const updateRoom = () => async (req: Request, res: Response, next: NextFu
                 fs.mkdirSync(uploadDir, { recursive: true });
             }
             fs.writeFileSync(path.join(uploadDir, filename), req.file.buffer);
+        }
+
+        // Handle Amenities Update
+        if (amenity_ids !== undefined) {
+            // Delete existing
+            await RoomTypeDetailModel.destroy({ where: { room_id: id } });
+
+            let ids: string[] = [];
+            if (Array.isArray(amenity_ids)) {
+                ids = amenity_ids;
+            } else if (typeof amenity_ids === 'string') {
+                ids = amenity_ids.split(',').filter(i => i.trim() !== '');
+            }
+
+            if (ids.length > 0) {
+                const details = ids.map(iid => ({
+                    room_id: id,
+                    amenity_id: iid.trim()
+                }));
+                await RoomTypeDetailModel.bulkCreate(details);
+            }
         }
 
         res.locals.room = room;
