@@ -307,6 +307,7 @@ export default function BookingPage() {
     const [loading, setLoading] = useState(true);
     const [checkInDate, setCheckInDate] = useState('');
     const [checkOutDate, setCheckOutDate] = useState('');
+    const [paymentType, setPaymentType] = useState('PAY');
 
     useEffect(() => {
         if (router.isReady) {
@@ -479,8 +480,22 @@ export default function BookingPage() {
                                 <OptionBox>
                                     <OptionTitle>Payment Type</OptionTitle>
                                     <CheckboxList>
-                                        <CheckboxItem><input type="radio" name="pay" defaultChecked /> Pay Now</CheckboxItem>
-                                        <CheckboxItem><input type="radio" name="pay" /> Pay at Hotel</CheckboxItem>
+                                        <CheckboxItem>
+                                            <input
+                                                type="radio"
+                                                name="pay"
+                                                checked={paymentType === 'PAY'}
+                                                onChange={() => setPaymentType('PAY')}
+                                            /> Pay Now
+                                        </CheckboxItem>
+                                        <CheckboxItem>
+                                            <input
+                                                type="radio"
+                                                name="pay"
+                                                checked={paymentType === 'PTH'}
+                                                onChange={() => setPaymentType('PTH')}
+                                            /> Pay at Hotel
+                                        </CheckboxItem>
                                     </CheckboxList>
                                 </OptionBox>
                             </OptionsContainer>
@@ -499,7 +514,7 @@ export default function BookingPage() {
                                 <SummaryTitle>Proprietary Summary</SummaryTitle>
                                 <PriceRow>
                                     <span>Payment Type</span>
-                                    <span>Pay Now</span>
+                                    <span>{paymentType === 'PAY' ? 'Pay Now' : 'Pay at Hotel'}</span>
                                 </PriceRow>
                                 <PriceRow>
                                     <span>Room Price ({nights} Night{nights > 1 ? 's' : ''})</span>
@@ -514,7 +529,17 @@ export default function BookingPage() {
                                     <span>THB {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                 </PriceRow>
 
-                                <NextButton onClick={() => alert("Proceed to Payment...")}>NEXT</NextButton>
+                                <NextButton onClick={() => {
+                                    router.push({
+                                        pathname: '/payment',
+                                        query: {
+                                            roomId,
+                                            checkIn: checkInDate,
+                                            checkOut: checkOutDate,
+                                            paymentType
+                                        }
+                                    });
+                                }}>NEXT</NextButton>
                             </Section>
                         </RightColumn>
                     </ContentGrid>
