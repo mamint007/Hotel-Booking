@@ -43,7 +43,7 @@ module.exports = {
             {
                 amenity_id: 'A05',
                 amenity_name: 'Fitness',
-                amenity_icon: 'fitness.png'
+                amenity_icon: 'fitness.svg'
             },
             {
                 amenity_id: 'A06',
