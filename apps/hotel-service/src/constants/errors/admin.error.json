@@ -198,5 +198,29 @@
             "en": "Token Expired",
             "th": "Token Expired"
         }
+    },
+    "ERR_COUPON_CODE_REQUIRED": {
+        "statusCode": 400,
+        "resCode": "1425",
+        "resDesc": {
+            "en": "Coupon code is required.",
+            "th": "กรุณากรอกรหัสคูปอง"
+        }
+    },
+    "ERR_COUPON_INVALID_OR_EXPIRED": {
+        "statusCode": 404,
+        "resCode": "1426",
+        "resDesc": {
+            "en": "Invalid or expired coupon code.",
+            "th": "รหัสคูปองไม่ถูกต้องหรือหมดอายุแล้ว"
+        }
+    },
+    "ERR_PROMOTION_QUOTA_EXCEEDED": {
+        "statusCode": 400,
+        "resCode": "1427",
+        "resDesc": {
+            "en": "Promotion quota has been reached.",
+            "th": "ขออภัย โปรโมชั่นนี้มีการใช้สิทธิ์ครบจำนวนแล้ว"
+        }
     }
 }

@@ -310,6 +310,11 @@ export default function BookingPage() {
   const [paymentType, setPaymentType] = useState('PAY');
   const [allAdditionalCharges, setAllAdditionalCharges] = useState<any[]>([]);
   const [selectedCharges, setSelectedCharges] = useState<any[]>([]);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState<any>(null);
+  const [applying, setApplying] = useState(false);
+
+
 
 
   useEffect(() => {
@@ -364,7 +369,44 @@ export default function BookingPage() {
     }
   };
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode) return;
+    setApplying(true);
+    try {
+      const res = await axios.post('/rooms/validate-coupon', { couponCode }, {
+        validateStatus: (status) => status < 500
+      });
+      if (res.data && res.data.res_code === '0000') {
+        setAppliedPromo(res.data.data);
+        const Toast = require('sweetalert2').mixin({
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+        });
+        Toast.fire({
+          icon: 'success',
+          title: 'Coupon applied!'
+        });
+      } else {
+        setAppliedPromo(null);
+        const Swal = require('sweetalert2');
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: res.data?.res_desc || 'Invalid coupon code',
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setApplying(false);
+    }
+  };
+
   const getImageUrl = (path?: string) => {
+
     if (!path) return 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=3270&auto=format&fit=crop';
     return `http://localhost:3001${path}`;
   };
@@ -538,8 +580,29 @@ export default function BookingPage() {
                   <span style={{ fontWeight: 600 }}>Coupon Code</span>
                 </div>
                 <CouponInput>
-                  <input placeholder="Enter coupon code" />
+                  <input
+                    placeholder="Enter coupon code"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                  />
+                  <button
+                    onClick={handleApplyCoupon}
+                    disabled={applying || !couponCode}
+                    style={{
+                      padding: '10px 20px',
+                      backgroundColor: '#4CAF50',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      opacity: (applying || !couponCode) ? 0.6 : 1
+                    }}
+                  >
+                    {applying ? '...' : 'APPLY'}
+                  </button>
                 </CouponInput>
+
 
                 <SummaryTitle>Proprietary Summary</SummaryTitle>
                 <PriceRow>
@@ -551,7 +614,7 @@ export default function BookingPage() {
                   <span>THB {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </PriceRow>
                 {selectedCharges.map((charge) => {
-                  const isPerNight = charge.charge_unit.includes('คืน');
+                  const isPerNight = charge.charge_unit.toLowerCase().includes('คืน') || charge.charge_unit.toLowerCase().includes('night');
                   const amount = parseFloat(charge.charge_amount);
                   const lineTotal = isPerNight ? amount * nights : amount;
                   return (
@@ -561,18 +624,26 @@ export default function BookingPage() {
                     </PriceRow>
                   );
                 })}
+
                 <PriceRow>
                   <span>Booking Fee</span>
                   <span>Free</span>
                 </PriceRow>
+                {appliedPromo && (
+                  <PriceRow>
+                    <span style={{ color: '#E53935' }}>Discount ({appliedPromo.promo_name})</span>
+                    <span style={{ color: '#E53935' }}>- THB {parseFloat(appliedPromo.discount_value).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                  </PriceRow>
+                )}
                 <PriceRow total>
                   <span>Total</span>
                   <span>THB {(total + selectedCharges.reduce((acc, charge) => {
-                    const isPerNight = charge.charge_unit.includes('คืน');
+                    const isPerNight = charge.charge_unit.toLowerCase().includes('คืน') || charge.charge_unit.toLowerCase().includes('night');
                     const amount = parseFloat(charge.charge_amount);
                     return acc + (isPerNight ? amount * nights : amount);
-                  }, 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                  }, 0) - (appliedPromo ? parseFloat(appliedPromo.discount_value) : 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </PriceRow>
+
 
                 <NextButton onClick={() => {
                   router.push({
@@ -582,10 +653,14 @@ export default function BookingPage() {
                       checkIn: checkInDate,
                       checkOut: checkOutDate,
                       paymentType,
-                      selectedCharges: JSON.stringify(selectedCharges)
+                      selectedCharges: JSON.stringify(selectedCharges),
+                      promoId: appliedPromo?.promo_id,
+                      discountAmount: appliedPromo ? parseFloat(appliedPromo.discount_value) : 0
                     }
                   });
                 }}>NEXT</NextButton>
+
+
 
               </Section>
             </RightColumn>

@@ -1,6 +1,7 @@
 
 import express, { Request, Response, NextFunction } from 'express';
-import { getRooms, getAdditionalCharges } from "../controller/roomController";
+import { getRooms, getAdditionalCharges, validateCoupon } from "../controller/roomController";
+
 
 import { getAllRoomTypes } from "../controller/adminController";
 
@@ -48,5 +49,19 @@ router.get(
     }
 );
 
+router.post(
+    '/validate-coupon',
+    validateCoupon(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Coupon validated successfully',
+            data: res.locals.promo
+        }
+        res.json(res.locals.response)
+        next()
+    }
+);
 
 export default router;
+

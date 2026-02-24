@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { RoomModel, RoomTypeModel, AmenityModel, AdditionalChargeModel } from "@hotel/models";
+import { RoomModel, RoomTypeModel, AmenityModel, AdditionalChargeModel, PromotionModel } from "@hotel/models";
+import { ServiceError } from "@hotel/helpers"
+import AdminMasterError from '../constants/errors/admin.error.json'
 import { Op, WhereOptions } from "sequelize";
 
 export const getRooms = () => async (req: Request, res: Response, next: NextFunction) => {
@@ -57,3 +59,38 @@ export const getAdditionalCharges = () => async (req: Request, res: Response, ne
         next(error);
     }
 }
+
+export const validateCoupon = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { couponCode } = req.body;
+
+        if (!couponCode) {
+            return next(new ServiceError(AdminMasterError.ERR_COUPON_CODE_REQUIRED));
+        }
+
+        const now = new Date();
+        const promo = await PromotionModel.findOne({
+            where: {
+                promo_name: couponCode,
+                is_active: 'A',
+                promo_start_date: { [Op.lte]: now },
+                promo_end_date: { [Op.gte]: now }
+            }
+        });
+
+        if (!promo) {
+            return next(new ServiceError(AdminMasterError.ERR_COUPON_INVALID_OR_EXPIRED));
+        }
+
+        if (promo.usage_per_user <= 0) {
+            return next(new ServiceError(AdminMasterError.ERR_PROMOTION_QUOTA_EXCEEDED));
+        }
+
+        res.locals.promo = promo;
+        next();
+
+    } catch (error) {
+        next(error);
+    }
+}
+
