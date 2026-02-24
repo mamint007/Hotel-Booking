@@ -12,6 +12,8 @@ import { PaymentModel } from './models/Payment'
 import { AmenityModel } from './models/Amenity'
 import { RoomTypeDetailModel } from './models/RoomTypeDetail'
 import { CheckInCheckOutModel } from './models/CheckInCheckOut'
+import { AdditionalChargeModel } from './models/AdditionalCharge'
+
 
 // Define Relationships
 RoleModel.hasMany(EmployeeModel, {
@@ -174,3 +176,5 @@ export * from './models/Payment'
 export * from './models/Amenity'
 export * from './models/RoomTypeDetail'
 export * from './models/CheckInCheckOut'
+export * from './models/AdditionalCharge'
+

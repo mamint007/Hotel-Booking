@@ -1,6 +1,7 @@
 
 import express, { Request, Response, NextFunction } from 'express';
-import { getRooms } from "../controller/roomController";
+import { getRooms, getAdditionalCharges } from "../controller/roomController";
+
 import { getAllRoomTypes } from "../controller/adminController";
 
 const router = express.Router();
@@ -32,5 +33,20 @@ router.get(
         next()
     }
 );
+
+router.get(
+    '/additional-charges',
+    getAdditionalCharges(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Get Additional Charges successfully',
+            data: res.locals.additionalCharges
+        }
+        res.json(res.locals.response)
+        next()
+    }
+);
+
 
 export default router;

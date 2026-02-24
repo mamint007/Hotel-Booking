@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { RoomModel, RoomTypeModel, AmenityModel } from "@hotel/models";
+import { RoomModel, RoomTypeModel, AmenityModel, AdditionalChargeModel } from "@hotel/models";
 import { Op, WhereOptions } from "sequelize";
 
 export const getRooms = () => async (req: Request, res: Response, next: NextFunction) => {
@@ -42,6 +42,16 @@ export const getRooms = () => async (req: Request, res: Response, next: NextFunc
         });
 
         res.locals.rooms = rooms;
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const getAdditionalCharges = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const charges = await AdditionalChargeModel.findAll();
+        res.locals.additionalCharges = charges;
         next();
     } catch (error) {
         next(error);

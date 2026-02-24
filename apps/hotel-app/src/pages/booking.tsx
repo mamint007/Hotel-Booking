@@ -301,250 +301,297 @@ const NextButton = styled.button`
 `;
 
 export default function BookingPage() {
-    const router = useRouter();
-    const { roomId, checkIn, checkOut } = router.query;
-    const [room, setRoom] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-    const [checkInDate, setCheckInDate] = useState('');
-    const [checkOutDate, setCheckOutDate] = useState('');
-    const [paymentType, setPaymentType] = useState('PAY');
+  const router = useRouter();
+  const { roomId, checkIn, checkOut } = router.query;
+  const [room, setRoom] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [checkInDate, setCheckInDate] = useState('');
+  const [checkOutDate, setCheckOutDate] = useState('');
+  const [paymentType, setPaymentType] = useState('PAY');
+  const [allAdditionalCharges, setAllAdditionalCharges] = useState<any[]>([]);
+  const [selectedCharges, setSelectedCharges] = useState<any[]>([]);
 
-    useEffect(() => {
-        if (router.isReady) {
-            if (checkIn) setCheckInDate(checkIn as string);
-            else {
-                const today = new Date();
-                setCheckInDate(today.toISOString().split('T')[0]);
-            }
 
-            if (checkOut) setCheckOutDate(checkOut as string);
-            else {
-                const tomorrow = new Date();
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                setCheckOutDate(tomorrow.toISOString().split('T')[0]);
-            }
-        }
-    }, [router.isReady, checkIn, checkOut]);
+  useEffect(() => {
+    if (router.isReady) {
+      if (checkIn) setCheckInDate(checkIn as string);
+      else {
+        const today = new Date();
+        setCheckInDate(today.toISOString().split('T')[0]);
+      }
 
-    useEffect(() => {
-        if (roomId) {
-            fetchRoom(roomId as string);
-        }
-    }, [roomId]);
-
-    const fetchRoom = async (id: string) => {
-        try {
-            // Mocking fetch or using filter
-            // For now, let's use the list endpoint and filter client side
-            const res = await axios.get('/rooms');
-            if (res.data && res.data.res_code === '0000') {
-                const found = res.data.data.find((r: any) => r.room_id === id);
-                setRoom(found);
-            }
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const getImageUrl = (path?: string) => {
-        if (!path) return 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=3270&auto=format&fit=crop';
-        return `http://localhost:3001${path}`;
-    };
-
-    if (loading) return <Container><div style={{ textAlign: 'center' }}>Loading...</div></Container>;
-    if (!room) return <Container><div style={{ textAlign: 'center' }}>Room not found</div></Container>;
-
-    const price = parseFloat(room.price_per_night);
-
-    // Calculate nights
-    const start = new Date(checkInDate);
-    const end = new Date(checkOutDate);
-    let nights = 0;
-    if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
-        const diffTime = end.getTime() - start.getTime();
-        nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (checkOut) setCheckOutDate(checkOut as string);
+      else {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        setCheckOutDate(tomorrow.toISOString().split('T')[0]);
+      }
     }
-    if (nights < 1) nights = 1;
+  }, [router.isReady, checkIn, checkOut]);
 
-    const total = price * nights;
+  useEffect(() => {
+    if (roomId) {
+      fetchRoom(roomId as string);
+      fetchAdditionalCharges();
+    }
+  }, [roomId]);
 
-    const getDayName = (dateStr: string) => {
-        if (!dateStr) return '';
-        return new Date(dateStr).toLocaleDateString('en-US', { weekday: 'long' });
-    };
+  const fetchAdditionalCharges = async () => {
+    try {
+      const res = await axios.get('/rooms/additional-charges');
+      if (res.data && res.data.res_code === '0000') {
+        setAllAdditionalCharges(res.data.data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
-    return (
-        <UserAuthGuard>
-            <Navbar />
-            <Container>
-                <Wrapper>
-                    <StepperContainer>
-                        <Step active>
-                            <StepCircle active>1</StepCircle>
-                            <span>Booking</span>
-                        </Step>
-                        <StepLine />
-                        <Step>
-                            <StepCircle>2</StepCircle>
-                            <span>Payment</span>
-                        </Step>
-                        <StepLine />
-                        <Step>
-                            <StepCircle>3</StepCircle>
-                            <span>Success</span>
-                        </Step>
-                    </StepperContainer>
 
-                    <ContentGrid>
-                        <LeftColumn>
-                            <Section>
-                                <div style={{ display: 'flex', gap: 40 }}>
-                                    <div style={{ flex: 1 }}>
-                                        <h4 style={{ marginBottom: 16, color: '#6b7280', fontSize: 12, textTransform: 'uppercase' }}>Check In</h4>
-                                        <DateBox>
-                                            <DateIcon><Calendar size={20} /></DateIcon>
-                                            <DateInfo>
-                                                <input
-                                                    type="date"
-                                                    value={checkInDate}
-                                                    onChange={(e) => setCheckInDate(e.target.value)}
-                                                    style={{ border: 'none', fontSize: '14px', fontWeight: 600, color: '#1f2937', background: 'transparent', outline: 'none' }}
-                                                />
-                                                <DateLabel>{getDayName(checkInDate)}</DateLabel>
-                                            </DateInfo>
-                                        </DateBox>
-                                    </div>
-                                    <div style={{ flex: 1 }}>
-                                        <h4 style={{ marginBottom: 16, color: '#6b7280', fontSize: 12, textTransform: 'uppercase' }}>Check Out</h4>
-                                        <DateBox>
-                                            <DateIcon><Calendar size={20} /></DateIcon>
-                                            <DateInfo>
-                                                <input
-                                                    type="date"
-                                                    value={checkOutDate}
-                                                    onChange={(e) => setCheckOutDate(e.target.value)}
-                                                    style={{ border: 'none', fontSize: '14px', fontWeight: 600, color: '#1f2937', background: 'transparent', outline: 'none' }}
-                                                />
-                                                <DateLabel>{getDayName(checkOutDate)}</DateLabel>
-                                            </DateInfo>
-                                        </DateBox>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                        <NightCount><Bed size={16} /> {nights} Night{nights > 1 ? 's' : ''}</NightCount>
-                                    </div>
-                                </div>
-                            </Section>
+  const fetchRoom = async (id: string) => {
+    try {
+      // Mocking fetch or using filter
+      // For now, let's use the list endpoint and filter client side
+      const res = await axios.get('/rooms');
+      if (res.data && res.data.res_code === '0000') {
+        const found = res.data.data.find((r: any) => r.room_id === id);
+        setRoom(found);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                            <Section>
-                                <RoomCard>
-                                    <RoomImage src={getImageUrl(room.room_image)} />
-                                    <RoomInfo>
-                                        <RoomTitle>{room.room_type?.room_type_name} {room.room_number}</RoomTitle>
-                                        <RoomMeta>
-                                            <span>1 Room, {room.max_guest} People</span>
-                                            <span style={{ textDecoration: 'underline', cursor: 'pointer' }}>Edit Booking Details</span>
-                                        </RoomMeta>
-                                        <TagList>
-                                            {room.amenities?.map((amenity: any, index: number) => (
-                                                <Tag key={index} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                    {amenity.amenity_icon && (
-                                                        <img
-                                                            src={`/amentity/${amenity.amenity_icon}`}
-                                                            alt={amenity.amenity_name}
-                                                            width={14}
-                                                            height={14}
-                                                            style={{ objectFit: 'contain' }} // Ensure icon fits well
-                                                        />
-                                                    )}
-                                                    {amenity.amenity_name}
-                                                </Tag>
-                                            ))}
-                                            {(!room.amenities || room.amenities.length === 0) && (
-                                                <Tag>No Amenities</Tag>
-                                            )}
-                                        </TagList>
-                                    </RoomInfo>
-                                </RoomCard>
-                            </Section>
+  const getImageUrl = (path?: string) => {
+    if (!path) return 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=3270&auto=format&fit=crop';
+    return `http://localhost:3001${path}`;
+  };
 
-                            <OptionsContainer>
-                                <OptionBox>
-                                    <OptionTitle>Additional Charges</OptionTitle>
-                                    <CheckboxList>
-                                        <CheckboxItem><input type="checkbox" /> Extra Bed</CheckboxItem>
-                                        <CheckboxItem><input type="checkbox" /> Airport Transfer</CheckboxItem>
-                                    </CheckboxList>
-                                </OptionBox>
-                                <OptionBox>
-                                    <OptionTitle>Payment Type</OptionTitle>
-                                    <CheckboxList>
-                                        <CheckboxItem>
-                                            <input
-                                                type="radio"
-                                                name="pay"
-                                                checked={paymentType === 'PAY'}
-                                                onChange={() => setPaymentType('PAY')}
-                                            /> Pay Now
-                                        </CheckboxItem>
-                                        <CheckboxItem>
-                                            <input
-                                                type="radio"
-                                                name="pay"
-                                                checked={paymentType === 'PTH'}
-                                                onChange={() => setPaymentType('PTH')}
-                                            /> Pay at Hotel
-                                        </CheckboxItem>
-                                    </CheckboxList>
-                                </OptionBox>
-                            </OptionsContainer>
-                        </LeftColumn>
+  if (loading) return <Container><div style={{ textAlign: 'center' }}>Loading...</div></Container>;
+  if (!room) return <Container><div style={{ textAlign: 'center' }}>Room not found</div></Container>;
 
-                        <RightColumn>
-                            <Section>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#4CAF50', marginBottom: 24 }}>
-                                    <CheckCircle size={20} />
-                                    <span style={{ fontWeight: 600 }}>Coupon Code</span>
-                                </div>
-                                <CouponInput>
-                                    <input placeholder="Enter coupon code" />
-                                </CouponInput>
+  const price = parseFloat(room.price_per_night);
 
-                                <SummaryTitle>Proprietary Summary</SummaryTitle>
-                                <PriceRow>
-                                    <span>Payment Type</span>
-                                    <span>{paymentType === 'PAY' ? 'Pay Now' : 'Pay at Hotel'}</span>
-                                </PriceRow>
-                                <PriceRow>
-                                    <span>Room Price ({nights} Night{nights > 1 ? 's' : ''})</span>
-                                    <span>THB {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                                </PriceRow>
-                                <PriceRow>
-                                    <span>Booking Fee</span>
-                                    <span>Free</span>
-                                </PriceRow>
-                                <PriceRow total>
-                                    <span>Total</span>
-                                    <span>THB {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                                </PriceRow>
+  // Calculate nights
+  const start = new Date(checkInDate);
+  const end = new Date(checkOutDate);
+  let nights = 0;
+  if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+    const diffTime = end.getTime() - start.getTime();
+    nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+  if (nights < 1) nights = 1;
 
-                                <NextButton onClick={() => {
-                                    router.push({
-                                        pathname: '/payment',
-                                        query: {
-                                            roomId,
-                                            checkIn: checkInDate,
-                                            checkOut: checkOutDate,
-                                            paymentType
-                                        }
-                                    });
-                                }}>NEXT</NextButton>
-                            </Section>
-                        </RightColumn>
-                    </ContentGrid>
-                </Wrapper>
-            </Container>
-        </UserAuthGuard>
-    );
+  const total = price * nights;
+
+  const getDayName = (dateStr: string) => {
+    if (!dateStr) return '';
+    return new Date(dateStr).toLocaleDateString('en-US', { weekday: 'long' });
+  };
+
+  return (
+    <UserAuthGuard>
+      <Navbar />
+      <Container>
+        <Wrapper>
+          <StepperContainer>
+            <Step active>
+              <StepCircle active>1</StepCircle>
+              <span>Booking</span>
+            </Step>
+            <StepLine />
+            <Step>
+              <StepCircle>2</StepCircle>
+              <span>Payment</span>
+            </Step>
+            <StepLine />
+            <Step>
+              <StepCircle>3</StepCircle>
+              <span>Success</span>
+            </Step>
+          </StepperContainer>
+
+          <ContentGrid>
+            <LeftColumn>
+              <Section>
+                <div style={{ display: 'flex', gap: 40 }}>
+                  <div style={{ flex: 1 }}>
+                    <h4 style={{ marginBottom: 16, color: '#6b7280', fontSize: 12, textTransform: 'uppercase' }}>Check In</h4>
+                    <DateBox>
+                      <DateIcon><Calendar size={20} /></DateIcon>
+                      <DateInfo>
+                        <input
+                          type="date"
+                          value={checkInDate}
+                          onChange={(e) => setCheckInDate(e.target.value)}
+                          style={{ border: 'none', fontSize: '14px', fontWeight: 600, color: '#1f2937', background: 'transparent', outline: 'none' }}
+                        />
+                        <DateLabel>{getDayName(checkInDate)}</DateLabel>
+                      </DateInfo>
+                    </DateBox>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h4 style={{ marginBottom: 16, color: '#6b7280', fontSize: 12, textTransform: 'uppercase' }}>Check Out</h4>
+                    <DateBox>
+                      <DateIcon><Calendar size={20} /></DateIcon>
+                      <DateInfo>
+                        <input
+                          type="date"
+                          value={checkOutDate}
+                          onChange={(e) => setCheckOutDate(e.target.value)}
+                          style={{ border: 'none', fontSize: '14px', fontWeight: 600, color: '#1f2937', background: 'transparent', outline: 'none' }}
+                        />
+                        <DateLabel>{getDayName(checkOutDate)}</DateLabel>
+                      </DateInfo>
+                    </DateBox>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <NightCount><Bed size={16} /> {nights} Night{nights > 1 ? 's' : ''}</NightCount>
+                  </div>
+                </div>
+              </Section>
+
+              <Section>
+                <RoomCard>
+                  <RoomImage src={getImageUrl(room.room_image)} />
+                  <RoomInfo>
+                    <RoomTitle>{room.room_type?.room_type_name} {room.room_number}</RoomTitle>
+                    <RoomMeta>
+                      <span>1 Room, {room.max_guest} People</span>
+                      <span style={{ textDecoration: 'underline', cursor: 'pointer' }}>Edit Booking Details</span>
+                    </RoomMeta>
+                    <TagList>
+                      {room.amenities?.map((amenity: any, index: number) => (
+                        <Tag key={index} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          {amenity.amenity_icon && (
+                            <img
+                              src={`/amentity/${amenity.amenity_icon}`}
+                              alt={amenity.amenity_name}
+                              width={14}
+                              height={14}
+                              style={{ objectFit: 'contain' }} // Ensure icon fits well
+                            />
+                          )}
+                          {amenity.amenity_name}
+                        </Tag>
+                      ))}
+                      {(!room.amenities || room.amenities.length === 0) && (
+                        <Tag>No Amenities</Tag>
+                      )}
+                    </TagList>
+                  </RoomInfo>
+                </RoomCard>
+              </Section>
+
+              <OptionsContainer>
+                <OptionBox>
+                  <OptionTitle>Additional Charges</OptionTitle>
+                  <CheckboxList>
+                    {allAdditionalCharges.map((charge) => (
+                      <CheckboxItem key={charge.charge_id}>
+                        <input
+                          type="checkbox"
+                          checked={selectedCharges.some(c => c.charge_id === charge.charge_id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedCharges([...selectedCharges, charge]);
+                            } else {
+                              setSelectedCharges(selectedCharges.filter(c => c.charge_id !== charge.charge_id));
+                            }
+                          }}
+                        /> {charge.charge_name}
+                      </CheckboxItem>
+                    ))}
+                  </CheckboxList>
+                </OptionBox>
+
+                <OptionBox>
+                  <OptionTitle>Payment Type</OptionTitle>
+                  <CheckboxList>
+                    <CheckboxItem>
+                      <input
+                        type="radio"
+                        name="pay"
+                        checked={paymentType === 'PAY'}
+                        onChange={() => setPaymentType('PAY')}
+                      /> Pay Now
+                    </CheckboxItem>
+                    <CheckboxItem>
+                      <input
+                        type="radio"
+                        name="pay"
+                        checked={paymentType === 'PTH'}
+                        onChange={() => setPaymentType('PTH')}
+                      /> Pay at Hotel
+                    </CheckboxItem>
+                  </CheckboxList>
+                </OptionBox>
+              </OptionsContainer>
+            </LeftColumn>
+
+            <RightColumn>
+              <Section>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#4CAF50', marginBottom: 24 }}>
+                  <CheckCircle size={20} />
+                  <span style={{ fontWeight: 600 }}>Coupon Code</span>
+                </div>
+                <CouponInput>
+                  <input placeholder="Enter coupon code" />
+                </CouponInput>
+
+                <SummaryTitle>Proprietary Summary</SummaryTitle>
+                <PriceRow>
+                  <span>Payment Type</span>
+                  <span>{paymentType === 'PAY' ? 'Pay Now' : 'Pay at Hotel'}</span>
+                </PriceRow>
+                <PriceRow>
+                  <span>Room Price ({nights} Night{nights > 1 ? 's' : ''})</span>
+                  <span>THB {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                </PriceRow>
+                {selectedCharges.map((charge) => {
+                  const isPerNight = charge.charge_unit.includes('คืน');
+                  const amount = parseFloat(charge.charge_amount);
+                  const lineTotal = isPerNight ? amount * nights : amount;
+                  return (
+                    <PriceRow key={charge.charge_id}>
+                      <span>{charge.charge_name} {isPerNight ? `(${nights} Night${nights > 1 ? 's' : ''})` : ''}</span>
+                      <span>THB {lineTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </PriceRow>
+                  );
+                })}
+                <PriceRow>
+                  <span>Booking Fee</span>
+                  <span>Free</span>
+                </PriceRow>
+                <PriceRow total>
+                  <span>Total</span>
+                  <span>THB {(total + selectedCharges.reduce((acc, charge) => {
+                    const isPerNight = charge.charge_unit.includes('คืน');
+                    const amount = parseFloat(charge.charge_amount);
+                    return acc + (isPerNight ? amount * nights : amount);
+                  }, 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                </PriceRow>
+
+                <NextButton onClick={() => {
+                  router.push({
+                    pathname: '/payment',
+                    query: {
+                      roomId,
+                      checkIn: checkInDate,
+                      checkOut: checkOutDate,
+                      paymentType,
+                      selectedCharges: JSON.stringify(selectedCharges)
+                    }
+                  });
+                }}>NEXT</NextButton>
+
+              </Section>
+            </RightColumn>
+          </ContentGrid>
+        </Wrapper>
+      </Container>
+    </UserAuthGuard>
+  );
 }
