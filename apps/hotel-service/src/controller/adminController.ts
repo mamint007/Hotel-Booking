@@ -646,6 +646,12 @@ export const createPromotion = () => async (req: Request, res: Response, next: N
             return next(new ServiceError(AdminMasterError.ERR_PROMOTION_CREATE_REQUIRED));
         }
 
+        // Check if promotion name already exists
+        const existingPromo = await PromotionModel.findOne({ where: { promo_name } });
+        if (existingPromo) {
+            return next(new ServiceError(AdminMasterError.ERR_PROMOTION_NAME_EXISTS));
+        }
+
         // Generate ID
         const lastPromo = await PromotionModel.findOne({
             order: [['promo_id', 'DESC']]
@@ -691,6 +697,14 @@ export const updatePromotion = () => async (req: Request, res: Response, next: N
         const promo = await PromotionModel.findByPk(id);
         if (!promo) {
             return next(new ServiceError(AdminMasterError.ERR_PROMOTION_NOT_FOUND));
+        }
+
+        // Check if new promo_name already exists (and is not that of the current promotion)
+        if (promo_name && promo_name !== promo.promo_name) {
+            const existingPromo = await PromotionModel.findOne({ where: { promo_name } });
+            if (existingPromo) {
+                return next(new ServiceError(AdminMasterError.ERR_PROMOTION_NAME_EXISTS));
+            }
         }
 
         const updates: any = {};

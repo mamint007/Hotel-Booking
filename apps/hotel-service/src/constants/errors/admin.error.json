@@ -183,6 +183,14 @@
             "th": "ไม่พบโปรโมชั่น"
         }
     },
+    "ERR_PROMOTION_NAME_EXISTS": {
+        "statusCode": 409,
+        "resCode": "1424",
+        "resDesc": {
+            "en": "Promotion name already exists.",
+            "th": "ชื่อโปรโมชั่นนี้มีอยู่ในระบบแล้ว"
+        }
+    },
     "TOKEN_EXPIRED": {
         "statusCode": 401,
         "resCode": "0406",

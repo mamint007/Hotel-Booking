@@ -4,6 +4,8 @@ import { Calendar, User } from "lucide-react";
 import styled, { createGlobalStyle } from "styled-components";
 import { Container, Row, Col, ScreenClassProvider } from "react-grid-system";
 import Navbar from "../components/Navbar";
+import Link from "next/link";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -314,9 +316,12 @@ export default function Home() {
           <HeroContent>
             <WelcomeTitle>Welcome To</WelcomeTitle>
             <SubTitle>HOTEL RESERVATIONS SYSTEM</SubTitle>
-            <ActionButton $variant="outline" style={{ fontSize: '14px', padding: '12px 32px' }}>
-              Book Room
-            </ActionButton>
+            <Link href="/room">
+              <ActionButton $variant="outline" style={{ fontSize: '14px', padding: '12px 32px' }}>
+                Book Room
+              </ActionButton>
+            </Link>
+
           </HeroContent>
         </HeroSection>
 
@@ -349,10 +354,10 @@ export default function Home() {
                       <FilterSubValue>Thursday</FilterSubValue>
                     </div>
                   </FilterItem>
-                  </FilterContainer>
+                </FilterContainer>
 
-                  <FilterContainer>
-                   {/* Adults */}
+                <FilterContainer>
+                  {/* Adults */}
                   <FilterItem $borderRight>
                     <User size={20} color="#9ca3af" />
                     <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
@@ -377,8 +382,8 @@ export default function Home() {
                       </StyledSelect>
                     </div>
                   </FilterItem>
-                  </FilterContainer>
-                 
+                </FilterContainer>
+
               </Col>
 
               <Col md={20} lg={2}>

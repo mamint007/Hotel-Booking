@@ -389,25 +389,33 @@ export default function PromotionPage() {
         setSubmitting(true);
 
         try {
+            let res;
             if (isEditMode && currentPromoId) {
-                await axios.put(`/admin/promotions/${currentPromoId}`, formData);
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Updated',
-                    text: 'Promotion updated successfully',
-                    timer: 1500
+                res = await axios.put(`/admin/promotions/${currentPromoId}`, formData, {
+                    validateStatus: (status) => status < 500
                 });
             } else {
-                await axios.post('/admin/promotions', formData);
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Created',
-                    text: 'Promotion created successfully',
-                    timer: 1500
+                res = await axios.post('/admin/promotions', formData, {
+                    validateStatus: (status) => status < 500
                 });
             }
-            setIsModalOpen(false);
-            fetchPromotions();
+
+            if (res.data && res.data.res_code === '0000') {
+                Swal.fire({
+                    icon: 'success',
+                    title: isEditMode ? 'Updated' : 'Created',
+                    text: `Promotion ${isEditMode ? 'updated' : 'created'} successfully`,
+                    timer: 1500
+                });
+                setIsModalOpen(false);
+                fetchPromotions();
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: res.data?.res_desc || 'Operation failed'
+                });
+            }
         } catch (error: any) {
             console.error("Submit error", error);
             Swal.fire({
