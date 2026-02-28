@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
-import { register, login, getMe } from "../controller/authenController"
+import { register, login, getMe, updateMe } from "../controller/authenController"
 import { verifyMemberToken } from "../middleware/authMiddleware"
 
 
@@ -47,6 +47,23 @@ router.get(
         res.locals.response = {
             res_code: '0000',
             res_desc: 'Get Me Successfully',
+            data: {
+                member: res.locals.member
+            }
+        }
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.put(
+    '/me',
+    verifyMemberToken(),
+    updateMe(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Update Profile Successfully',
             data: {
                 member: res.locals.member
             }

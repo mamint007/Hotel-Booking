@@ -306,6 +306,10 @@ export default function Navbar() {
                       <DropdownName>{user?.m_firstname} {user?.m_lastname}</DropdownName>
                       <DropdownEmail>{user?.m_email}</DropdownEmail>
                     </DropdownHeader>
+                    <DropdownItem onClick={() => router.push('/profile')}>
+                      <User size={16} />
+                      Profile
+                    </DropdownItem>
                     <DropdownItem onClick={handleLogout} style={{ color: '#ef4444' }}>
                       <LogOut size={16} />
                       Log Out

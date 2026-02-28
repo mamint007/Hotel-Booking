@@ -58,7 +58,6 @@ const ActionButton = styled.button<{ $variant?: "primary" | "outline" }>`
   }
 `;
 
-
 const HeroSection = styled.section`
   position: relative;
   height: 600px;

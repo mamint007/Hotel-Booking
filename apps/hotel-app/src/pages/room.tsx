@@ -206,7 +206,7 @@ const RoomTitle = styled.h2`
 
 const RoomDescription = styled.p`
   color: #6b7280;
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1.6;
   flex: 1;
 `;
@@ -428,7 +428,7 @@ export default function RoomPage() {
                     <RoomDetails>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                         <RoomTitle>{room.room_type?.room_type_name} {room.room_number}</RoomTitle>
-                        <span style={{ fontSize: '18px', fontWeight: 600, color: '#4CAF50' }}>฿{parseFloat(room.price_per_night).toLocaleString()}</span>
+                        <span style={{ fontSize: '16px', fontWeight: 600, color: '#4CAF50' }}>฿{parseFloat(room.price_per_night).toLocaleString()}</span>
                       </div>
                       <RoomDescription>
                         Floor {room.floor} • {getBedTypeName(room.bed_type)} x{room.bed_quantity} • Max {room.max_guest} Guests

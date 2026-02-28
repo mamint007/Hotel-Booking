@@ -121,3 +121,29 @@ export const getMe = () => async (req: Request, res: Response, next: NextFunctio
     next(error)
   }
 }
+
+export const updateMe = () => async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = res.locals.user;
+    const { name, last_name, sex, phone_number } = req.body;
+
+    const member = await MemberModel.findByPk(id);
+
+    if (!member) {
+      return next(new ServiceError(AuthenMasterError.ERR_MEMBER_LOGIN_FAIL));
+    }
+
+    const updates: any = {};
+    if (name !== undefined) updates.m_firstname = name;
+    if (last_name !== undefined) updates.m_lastname = last_name;
+    if (sex !== undefined) updates.m_sex = sex;
+    if (phone_number !== undefined) updates.m_tel = phone_number;
+
+    await member.update(updates);
+
+    res.locals.member = member;
+    next();
+  } catch (error) {
+    next(error);
+  }
+}
