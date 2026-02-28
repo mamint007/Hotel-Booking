@@ -3,7 +3,9 @@ import styled from 'styled-components';
 import { useRouter } from 'next/router';
 import Navbar from '../components/Navbar';
 import UserAuthGuard from '../components/UserAuthGuard';
-import { User, Mail, Phone, Calendar, ShieldCheck, Edit2 } from 'lucide-react';
+import { User, Mail, Phone, Calendar, Edit2, X, Save, UserCircle, Lock } from 'lucide-react';
+import axios from '../helpers/axios';
+import swalInstance from 'sweetalert2';
 
 const Container = styled.div`
   min-height: 100vh;
@@ -53,17 +55,6 @@ const Name = styled.h1`
   margin-bottom: 8px;
 `;
 
-const Badge = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-`;
 
 const Content = styled.div`
   padding: 40px;
@@ -104,6 +95,41 @@ const Value = styled.div`
   background-color: #f3f4f6;
   border-radius: 10px;
   border: 1px solid #e5e7eb;
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+`;
+
+const Input = styled.input`
+  font-size: 16px;
+  font-weight: 500;
+  color: #1f2937;
+  padding: 12px;
+  background-color: white;
+  border-radius: 10px;
+  border: 1px solid #4CAF50;
+  outline: none;
+  width: 100%;
+  
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+  }
+`;
+
+const Select = styled.select`
+  font-size: 16px;
+  font-weight: 500;
+  color: #1f2937;
+  padding: 12px;
+  background-color: white;
+  border-radius: 10px;
+  border: 1px solid #4CAF50;
+  outline: none;
+  width: 100%;
+  
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+  }
 `;
 
 const EditButton = styled.button`
@@ -127,92 +153,251 @@ const EditButton = styled.button`
   }
 `;
 
+const ActionButtons = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 1px solid #e5e7eb;
+`;
+
+const Button = styled.button<{ variant?: 'primary' | 'secondary' }>`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  ${props => props.variant === 'secondary' ? `
+    background: #f3f4f6;
+    color: #4b5563;
+    border: 1px solid #e5e7eb;
+    &:hover {
+      background: #e5e7eb;
+    }
+  ` : `
+    background: #4CAF50;
+    color: white;
+    border: 1px solid #4CAF50;
+    &:hover {
+      background: #43A047;
+    }
+  `}
+`;
+
 export default function ProfilePage() {
-    const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedUser, setEditedUser] = useState<any>(null);
+  const router = useRouter();
 
-    useEffect(() => {
-        const userData = localStorage.getItem('user');
-        if (userData) {
-            try {
-                setUser(JSON.parse(userData));
-            } catch (e) {
-                console.error('Failed to parse user data', e);
-            }
-        }
-    }, []);
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const parsed = JSON.parse(userData);
+        setUser(parsed);
+        // Don't put actual password in editedUser initial state for security/logic
+        setEditedUser({ ...parsed, password: '' });
+      } catch (e) {
+        console.error('Failed to parse user data', e);
+      }
+    }
+  }, []);
 
-    return (
-        <UserAuthGuard>
-            <Navbar />
-            <Container>
-                <Wrapper>
-                    <ProfileCard>
-                        <Header>
-                            <AvatarCircle>
-                                <User size={48} />
-                            </AvatarCircle>
-                            <Name>
-                                {user?.m_firstname} {user?.m_lastname}
-                            </Name>
-                            <Badge>
-                                <ShieldCheck size={14} />
-                                Verified Member
-                            </Badge>
-                            <EditButton title="Edit Profile">
-                                <Edit2 size={18} />
-                            </EditButton>
-                        </Header>
+  const toggleEditing = () => {
+    if (isEditing) {
+      setEditedUser({ ...user, password: '' });
+    }
+    setIsEditing(!isEditing);
+  };
 
-                        <Content>
-                            <InfoGrid>
-                                <InfoItem>
-                                    <Label>
-                                        <User size={14} />
-                                        First Name
-                                    </Label>
-                                    <Value>{user?.m_firstname || '-'}</Value>
-                                </InfoItem>
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setEditedUser((prev: any) => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
-                                <InfoItem>
-                                    <Label>
-                                        <User size={14} />
-                                        Last Name
-                                    </Label>
-                                    <Value>{user?.m_lastname || '-'}</Value>
-                                </InfoItem>
+  const handleSave = async () => {
+    try {
+      const payload: any = {
+        name: editedUser.m_firstname,
+        last_name: editedUser.m_lastname,
+        sex: editedUser.m_sex,
+        phone_number: editedUser.m_tel
+      };
 
-                                <InfoItem>
-                                    <Label>
-                                        <Mail size={14} />
-                                        Email
-                                    </Label>
-                                    <Value>{user?.m_email || '-'}</Value>
-                                </InfoItem>
+      if (editedUser.password && editedUser.password.trim() !== '') {
+        payload.password = editedUser.password;
+      }
 
-                                <InfoItem>
-                                    <Label>
-                                        <Phone size={14} />
-                                        Phone Number
-                                    </Label>
-                                    <Value>{user?.m_phone || '-'}</Value>
-                                </InfoItem>
+      const res = await axios.put('/authen/me', payload);
 
-                                <InfoItem>
-                                    <Label>
-                                        <Calendar size={14} />
-                                        Member Since
-                                    </Label>
-                                    <Value>
-                                        {user?.createdAt
-                                            ? new Date(user.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
-                                            : '-'}
-                                    </Value>
-                                </InfoItem>
-                            </InfoGrid>
-                        </Content>
-                    </ProfileCard>
-                </Wrapper>
-            </Container>
-        </UserAuthGuard>
-    );
+      if (res.data?.res_code === '0000') {
+        const updatedUser = res.data.data.member;
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        setIsEditing(false);
+
+        swalInstance.fire({
+          icon: 'success',
+          title: 'Profile Updated',
+          text: 'Your profile has been updated successfully.',
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to update profile', error);
+      swalInstance.fire({
+        icon: 'error',
+        title: 'Update Failed',
+        text: 'Something went wrong. Please try again.',
+      });
+    }
+  };
+
+  return (
+    <UserAuthGuard>
+      <Navbar />
+      <Container>
+        <Wrapper>
+          <ProfileCard>
+            <Header>
+              <AvatarCircle>
+                <User size={48} />
+              </AvatarCircle>
+              <Name>
+                {user?.m_firstname} {user?.m_lastname}
+              </Name>
+              {!isEditing && (
+                <EditButton title="Edit Profile" onClick={toggleEditing}>
+                  <Edit2 size={18} />
+                </EditButton>
+              )}
+            </Header>
+
+            <Content>
+              <InfoGrid>
+                <InfoItem>
+                  <Label>
+                    <User size={14} />
+                    First Name
+                  </Label>
+                  {isEditing ? (
+                    <Input
+                      name="m_firstname"
+                      value={editedUser?.m_firstname || ''}
+                      onChange={handleChange}
+                    />
+                  ) : (
+                    <Value>{user?.m_firstname || '-'}</Value>
+                  )}
+                </InfoItem>
+
+                <InfoItem>
+                  <Label>
+                    <User size={14} />
+                    Last Name
+                  </Label>
+                  {isEditing ? (
+                    <Input
+                      name="m_lastname"
+                      value={editedUser?.m_lastname || ''}
+                      onChange={handleChange}
+                    />
+                  ) : (
+                    <Value>{user?.m_lastname || '-'}</Value>
+                  )}
+                </InfoItem>
+
+                <InfoItem>
+                  <Label>
+                    <UserCircle size={14} />
+                    Gender
+                  </Label>
+                  {isEditing ? (
+                    <Select
+                      name="m_sex"
+                      value={editedUser?.m_sex || ''}
+                      onChange={handleChange}
+                    >
+                      <option value="M">Male</option>
+                      <option value="F">Female</option>
+                    </Select>
+                  ) : (
+                    <Value>
+                      {user?.m_sex === 'M' ? 'Male' : user?.m_sex === 'F' ? 'Female' : '-'}
+                    </Value>
+                  )}
+                </InfoItem>
+
+                <InfoItem>
+                  <Label>
+                    <Phone size={14} />
+                    Phone Number
+                  </Label>
+                  {isEditing ? (
+                    <Input
+                      name="m_tel"
+                      value={editedUser?.m_tel || ''}
+                      onChange={handleChange}
+                    />
+                  ) : (
+                    <Value>{user?.m_tel || '-'}</Value>
+                  )}
+                </InfoItem>
+
+                <InfoItem>
+                  <Label>
+                    <Mail size={14} />
+                    Email
+                  </Label>
+                  <Value>{user?.m_email || '-'}</Value>
+                </InfoItem>
+
+                <InfoItem>
+                  <Label>
+                    <Lock size={14} />
+                    Password
+                  </Label>
+                  {isEditing ? (
+                    <Input
+                      type="password"
+                      name="password"
+                      placeholder="Enter new password (optional)"
+                      value={editedUser?.password || ''}
+                      onChange={handleChange}
+                    />
+                  ) : (
+                    <Value>••••••••</Value>
+                  )}
+                </InfoItem>
+              </InfoGrid>
+
+              {isEditing && (
+                <ActionButtons>
+                  <Button variant="secondary" onClick={toggleEditing}>
+                    <X size={16} />
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSave}>
+                    <Save size={16} />
+                    Save Changes
+                  </Button>
+                </ActionButtons>
+              )}
+            </Content>
+          </ProfileCard>
+        </Wrapper>
+      </Container>
+    </UserAuthGuard>
+  );
 }

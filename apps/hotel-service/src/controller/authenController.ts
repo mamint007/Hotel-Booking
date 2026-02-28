@@ -125,7 +125,7 @@ export const getMe = () => async (req: Request, res: Response, next: NextFunctio
 export const updateMe = () => async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = res.locals.user;
-    const { name, last_name, sex, phone_number } = req.body;
+    const { name, last_name, sex, phone_number, password } = req.body;
 
     const member = await MemberModel.findByPk(id);
 
@@ -138,6 +138,7 @@ export const updateMe = () => async (req: Request, res: Response, next: NextFunc
     if (last_name !== undefined) updates.m_lastname = last_name;
     if (sex !== undefined) updates.m_sex = sex;
     if (phone_number !== undefined) updates.m_tel = phone_number;
+    if (password !== undefined && password !== '') updates.m_password = password;
 
     await member.update(updates);
 
