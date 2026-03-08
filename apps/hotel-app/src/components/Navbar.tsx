@@ -256,7 +256,7 @@ export default function Navbar() {
             <NavMenu>
               <NavLink href="/">HOME</NavLink>
               <NavLink href="/room">ROOM</NavLink>
-              <NavLink href="#">SERVICE & FACILITIES</NavLink>
+              <NavLink href="/services">SERVICE & FACILITIES</NavLink>
               <NavLink href="/admin/login">ADMIN</NavLink>
             </NavMenu>
           )}

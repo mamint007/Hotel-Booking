@@ -5,6 +5,8 @@ import styled, { createGlobalStyle } from "styled-components";
 import { Container, Row, Col, ScreenClassProvider } from "react-grid-system";
 import Navbar from "../components/Navbar";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 
 
 const geistSans = Geist({
@@ -201,13 +203,33 @@ const FilterSubValue = styled.span`
 `;
 
 const StyledSelect = styled.select`
-  background-color: #f3f4f6;
+  background-color: transparent;
   border: none;
-  border-radius: 4px;
-  padding: 4px;
   font-size: 14px;
+  font-weight: 600;
+  color: #374151;
   outline: none;
+  padding: 0;
   cursor: pointer;
+  width: 100%;
+`;
+
+const StyledDateInput = styled.input`
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  outline: none;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  width: 100%;
+
+  /* Hide default calendar icon in Chrome/Edge/Safari */
+  &::-webkit-calendar-picker-indicator {
+    display: none;
+    -webkit-appearance: none;
+  }
 `;
 
 const CheckAvailabilityButton = styled(ActionButton)`
@@ -289,6 +311,46 @@ const AboutText = styled.p`
 `;
 
 export default function Home() {
+  const router = useRouter();
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [guests, setGuests] = useState("2");
+
+  useEffect(() => {
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+
+    setCheckIn(today.toISOString().split("T")[0]);
+    setCheckOut(tomorrow.toISOString().split("T")[0]);
+  }, []);
+
+  const handleSearch = () => {
+    router.push({
+      pathname: "/room",
+      query: {
+        checkIn,
+        checkOut,
+        guests
+      }
+    });
+  };
+
+  const handleCheckInChange = (val: string) => {
+    setCheckIn(val);
+    // If check-out is before or same as new check-in, move check-out to the next day
+    if (checkOut && val >= checkOut) {
+      const date = new Date(val);
+      date.setDate(date.getDate() + 1);
+      setCheckOut(date.toISOString().split("T")[0]);
+    }
+  };
+
+  const getDayName = (dateStr: string) => {
+    if (!dateStr) return "";
+    return new Date(dateStr).toLocaleDateString("en-US", { weekday: "long" });
+  };
+
   return (
     <ScreenClassProvider>
       <Head>
@@ -335,58 +397,67 @@ export default function Home() {
               <Col md={12} lg={8} style={{ paddingLeft: 0, paddingRight: 0, display: "flex", gap: "30px" }}>
                 <FilterContainer>
                   {/* Check In */}
-                  <FilterItem $borderRight>
+                  <FilterItem $borderRight as="label" htmlFor="check-in-input" style={{ cursor: 'pointer' }}>
                     <Calendar size={20} color="#9ca3af" />
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <FilterLabel>Check In Data</FilterLabel>
-                      <FilterValue>5 NOV 2025</FilterValue>
-                      <FilterSubValue>Wednesday</FilterSubValue>
+                    <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                      <FilterLabel>Check In Date</FilterLabel>
+                      <StyledDateInput
+                        id="check-in-input"
+                        type="date"
+                        value={checkIn}
+                        onChange={(e) => handleCheckInChange(e.target.value)}
+                        min={new Date().toISOString().split("T")[0]}
+                        onClick={(e) => (e.target as any).showPicker?.()}
+                      />
+                      <FilterSubValue>{getDayName(checkIn)}</FilterSubValue>
                     </div>
                   </FilterItem>
 
                   {/* Check Out */}
-                  <FilterItem $borderRight>
+                  <FilterItem as="label" htmlFor="check-out-input" style={{ cursor: 'pointer' }}>
                     <Calendar size={20} color="#9ca3af" />
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <FilterLabel>Check Out Data</FilterLabel>
-                      <FilterValue>6 NOV 2025</FilterValue>
-                      <FilterSubValue>Thursday</FilterSubValue>
+                    <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                      <FilterLabel>Check Out Date</FilterLabel>
+                      <StyledDateInput
+                        id="check-out-input"
+                        type="date"
+                        value={checkOut}
+                        onChange={(e) => setCheckOut(e.target.value)}
+                        min={checkIn || new Date().toISOString().split("T")[0]}
+                        onClick={(e) => (e.target as any).showPicker?.()}
+                      />
+                      <FilterSubValue>{getDayName(checkOut)}</FilterSubValue>
                     </div>
                   </FilterItem>
                 </FilterContainer>
 
                 <FilterContainer>
-                  {/* Adults */}
-                  <FilterItem $borderRight>
+                  {/* Guests */}
+                  <FilterItem as="label" htmlFor="guests-select" style={{ cursor: 'pointer' }}>
                     <User size={20} color="#9ca3af" />
-                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                      <span style={{ fontSize: '14px', fontWeight: 500, color: '#4b5563' }}>Adult(s)</span>
-                      <StyledSelect>
-                        <option>1</option>
-                        <option>2</option>
-                        <option>3</option>
+                    <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                      <FilterLabel>Guests</FilterLabel>
+                      <StyledSelect
+                        id="guests-select"
+                        value={guests}
+                        onChange={(e) => setGuests(e.target.value)}
+                      >
+                        <option value="1">1 Person</option>
+                        <option value="2">2 Persons</option>
+                        <option value="3">3 Persons</option>
+                        <option value="4">4 Persons</option>
+                        <option value="5">5 Persons</option>
+                        <option value="6">6 Persons</option>
                       </StyledSelect>
-                    </div>
-                  </FilterItem>
-
-                  {/* Children */}
-                  <FilterItem>
-                    <User size={20} color="#9ca3af" />
-                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                      <span style={{ fontSize: '14px', fontWeight: 500, color: '#4b5563' }}>Children</span>
-                      <StyledSelect>
-                        <option>0</option>
-                        <option>1</option>
-                        <option>2</option>
-                      </StyledSelect>
+                      <FilterSubValue>Total Guests</FilterSubValue>
                     </div>
                   </FilterItem>
                 </FilterContainer>
 
               </Col>
 
-              <Col md={20} lg={2}>
-                <CheckAvailabilityButton $variant="outline">
+              <Col md={12} lg={2}>
+                <CheckAvailabilityButton $variant="outline" onClick={handleSearch}>
                   Check Availability
                 </CheckAvailabilityButton>
               </Col>

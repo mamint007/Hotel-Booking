@@ -253,6 +253,25 @@ export default function RoomPage() {
   const [roomTypes, setRoomTypes] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Search state
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [guests, setGuests] = useState("2");
+
+  useEffect(() => {
+    if (router.isReady) {
+      const { checkIn: qIn, checkOut: qOut, guests: qGuests } = router.query;
+
+      const today = new Date();
+      const tomorrow = new Date();
+      tomorrow.setDate(today.getDate() + 1);
+
+      setCheckIn((qIn as string) || today.toISOString().split("T")[0]);
+      setCheckOut((qOut as string) || tomorrow.toISOString().split("T")[0]);
+      setGuests((qGuests as string) || "2");
+    }
+  }, [router.isReady, router.query]);
+
   const fetchRoomTypes = async () => {
     try {
       const res = await axios.get('/rooms/types');
@@ -271,9 +290,11 @@ export default function RoomPage() {
 
   const fetchRooms = async () => {
     try {
+      setLoading(true);
       const params: any = {
         minPrice: priceRange[0],
-        maxPrice: priceRange[1]
+        maxPrice: priceRange[1],
+        guests: guests // Pass guests to API if supported
       };
       if (activeTab !== "ALL ROOM") {
         params.type = activeTab;
@@ -281,7 +302,15 @@ export default function RoomPage() {
 
       const res = await axios.get('/rooms', { params });
       if (res.data && res.data.res_code === '0000') {
-        setRooms(res.data.data);
+        const allRooms: Room[] = res.data.data;
+        // Client-side filtering for guests and price range
+        const filteredRooms = allRooms.filter(room => {
+          const price = parseFloat(room.price_per_night);
+          const matchesGuests = room.max_guest >= parseInt(guests);
+          const matchesPrice = price >= priceRange[0] && price <= priceRange[1];
+          return matchesGuests && matchesPrice;
+        });
+        setRooms(filteredRooms);
       }
     } catch (error) {
       console.error("Failed to fetch rooms", error);
@@ -291,8 +320,10 @@ export default function RoomPage() {
   };
 
   useEffect(() => {
-    fetchRooms();
-  }, [activeTab, priceRange]); // Re-fetch when filters change (debouncing recommended for price range in production)
+    if (router.isReady) {
+      fetchRooms();
+    }
+  }, [activeTab, priceRange, guests, router.isReady]);
 
   const handleBook = (room: Room) => {
     const token = localStorage.getItem('token');
@@ -302,7 +333,11 @@ export default function RoomPage() {
     }
     router.push({
       pathname: '/booking',
-      query: { roomId: room.room_id }
+      query: {
+        roomId: room.room_id,
+        checkIn,
+        checkOut
+      }
     });
   };
 
@@ -321,6 +356,11 @@ export default function RoomPage() {
     }
   }
 
+  const getDayName = (dateStr: string) => {
+    if (!dateStr) return "";
+    return new Date(dateStr).toLocaleDateString("en-US", { weekday: "long" });
+  };
+
   return (
     <>
       <Navbar />
@@ -332,7 +372,13 @@ export default function RoomPage() {
               <Calendar size={20} color="#9ca3af" />
               <Label>
                 <LabelTitle>CHECK-IN</LabelTitle>
-                <LabelValue>5 NOV 2025</LabelValue>
+                <input
+                  type="date"
+                  value={checkIn}
+                  onChange={(e) => setCheckIn(e.target.value)}
+                  style={{ border: 'none', fontSize: '14px', fontWeight: 500, outline: 'none', background: 'transparent' }}
+                  min={new Date().toISOString().split("T")[0]}
+                />
               </Label>
             </InputGroup>
 
@@ -340,7 +386,13 @@ export default function RoomPage() {
               <Calendar size={20} color="#9ca3af" />
               <Label>
                 <LabelTitle>CHECK-OUT</LabelTitle>
-                <LabelValue>6 NOV 2025</LabelValue>
+                <input
+                  type="date"
+                  value={checkOut}
+                  onChange={(e) => setCheckOut(e.target.value)}
+                  style={{ border: 'none', fontSize: '14px', fontWeight: 500, outline: 'none', background: 'transparent' }}
+                  min={checkIn || new Date().toISOString().split("T")[0]}
+                />
               </Label>
             </InputGroup>
 
@@ -348,15 +400,22 @@ export default function RoomPage() {
               <User size={20} color="#9ca3af" />
               <Label>
                 <LabelTitle>GUESTS</LabelTitle>
-                <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                  <span style={{ fontSize: 13, fontWeight: 500 }}>2 Adults</span>
-                  <span style={{ color: '#d1d5db' }}>|</span>
-                  <span style={{ fontSize: 13, fontWeight: 500 }}>0 Children</span>
-                </div>
+                <select
+                  value={guests}
+                  onChange={(e) => setGuests(e.target.value)}
+                  style={{ border: 'none', fontSize: '14px', fontWeight: 500, outline: 'none', background: 'transparent', width: '100%' }}
+                >
+                  <option value="1">1 Person</option>
+                  <option value="2">2 Persons</option>
+                  <option value="3">3 Persons</option>
+                  <option value="4">4 Persons</option>
+                  <option value="5">5 Persons</option>
+                  <option value="6">6 Persons</option>
+                </select>
               </Label>
             </InputGroup>
 
-            <CheckButton>CHECK AVAILABILITY</CheckButton>
+            <CheckButton onClick={fetchRooms}>SEARCH</CheckButton>
           </SearchBarContainer>
         </SearchSection>
 
@@ -380,11 +439,19 @@ export default function RoomPage() {
               <PriceInputs>
                 <PriceInputGroup>
                   <PriceLabel>Min Price</PriceLabel>
-                  <PriceValueInput type="number" value={priceRange[0]} readOnly />
+                  <PriceValueInput
+                    type="number"
+                    value={priceRange[0]}
+                    onChange={(e) => setPriceRange([parseInt(e.target.value) || 0, priceRange[1]])}
+                  />
                 </PriceInputGroup>
                 <PriceInputGroup>
                   <PriceLabel>Max Price</PriceLabel>
-                  <PriceValueInput type="number" value={priceRange[1]} onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])} />
+                  <PriceValueInput
+                    type="number"
+                    value={priceRange[1]}
+                    onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value) || 0])}
+                  />
                 </PriceInputGroup>
               </PriceInputs>
             </PriceRangeContainer>
