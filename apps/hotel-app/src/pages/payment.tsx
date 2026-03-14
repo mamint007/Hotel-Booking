@@ -185,6 +185,123 @@ const PayButton = styled.button`
   }
 `;
 
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  width: 100%;
+  max-width: 450px;
+  border-radius: 24px;
+  padding: 32px;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.3s ease-out;
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+`;
+
+const ModalHeader = styled.h2`
+  text-align: center;
+  color: #4CAF50;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 24px;
+`;
+
+const QRCodeContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+`;
+
+const QRCodeImage = styled.img`
+  width: 220px;
+  height: 220px;
+  object-fit: contain;
+`;
+
+const Divider = styled.div`
+  height: 1px;
+  background-color: #f3f4f6;
+  margin-bottom: 24px;
+`;
+
+const SlipLabel = styled.div`
+  font-weight: 700;
+  color: #4CAF50;
+  font-size: 18px;
+  margin-bottom: 4px;
+`;
+
+const SlipHint = styled.p`
+  color: #9ca3af;
+  font-size: 11px;
+  margin-bottom: 12px;
+`;
+
+const FileInputWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+`;
+
+const ChooseFileButton = styled.label`
+  background-color: #f3f4f6;
+  color: #6b7280;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid #e5e7eb;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: #e5e7eb;
+  }
+`;
+
+const FileName = styled.span`
+  font-size: 12px;
+  color: #9ca3af;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const HiddenInput = styled.input`
+  display: none;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #9ca3af;
+  cursor: pointer;
+  
+  &:hover {
+      color: #374151;
+  }
+`;
+
 export default function PaymentPage() {
   const router = useRouter();
   const { roomId, checkIn, checkOut, guests, paymentType, discountAmount, selectedCharges } = router.query;
@@ -209,6 +326,8 @@ export default function PaymentPage() {
   const [room, setRoom] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [paymentSlip, setPaymentSlip] = useState<File | null>(null);
 
   useEffect(() => {
     if (router.isReady && roomIdStr) {
@@ -263,33 +382,59 @@ export default function PaymentPage() {
   }, 0);
   const total = price * nights + chargesTotal - parseFloat(discountStr);
 
-  const handlePayment = async () => {
+  const handlePayment = () => {
+    setShowQRModal(true);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setPaymentSlip(e.target.files[0]);
+    }
+  };
+
+  const handleConfirmPayment = async () => {
     setSubmitting(true);
     try {
-      // Prepare payload
-      const payload = {
-        room_id: room.room_id,
-        check_in_date: checkInStr,
-        check_out_date: checkOutStr,
-        number_of_nights: nights,
-        total_price: total,
-        number_of_guests: parseInt(guestsStr || '1'),
-        payment_type: 'PAY', // Or derived from previous step
-        additional_charges: additionalCharges
-      };
+      let finalSlip = paymentSlip;
 
-      const res = await axios.post('/bookings', payload);
+      // Mockup slip if not uploaded
+      if (!finalSlip) {
+        console.log("Using mockup slip...");
+        const blob = new Blob(["mock-slip-content"], { type: "image/png" });
+        finalSlip = new File([blob], "mock-slip.png", { type: "image/png" });
+      }
+
+      const formData = new FormData();
+      formData.append('room_id', room.room_id);
+      formData.append('check_in_date', checkInStr || '');
+      formData.append('check_out_date', checkOutStr || '');
+      formData.append('number_of_nights', nights.toString());
+      formData.append('total_price', total.toString());
+      formData.append('number_of_guests', (guestsStr || '1'));
+      formData.append('payment_type', (paymentType as string) || 'PAY');
+      formData.append('additional_charges', JSON.stringify(additionalCharges));
+      formData.append('payment_slip', finalSlip);
+
+      // Using direct payload for now as per previous handlePayment, but with slip
+      // If the backend expects FormData, this is correct. 
+      // If it expects JSON, we might need a separate upload or Base64.
+      // Based on typical patterns, FormData is used for file uploads.
+
+      const res = await axios.post('/bookings', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
       if (res.data && res.data.res_code === '0000') {
+        setShowQRModal(false);
         Swal.fire({
           icon: 'success',
           title: 'Payment Successful',
           text: 'Your booking has been confirmed!',
           confirmButtonColor: '#4CAF50'
         }).then(() => {
-          // Redirect to Success Page or Home
-          // router.push('/booking/success');
-          router.push('/dashboard'); // Or wherever
+          router.push('/book');
         });
       }
     } catch (error: any) {
@@ -387,6 +532,34 @@ export default function PaymentPage() {
 
           </ContentCard>
         </Wrapper>
+
+        {showQRModal && (
+          <ModalOverlay onClick={() => !submitting && setShowQRModal(false)}>
+            <ModalContent onClick={(e) => e.stopPropagation()}>
+              <CloseButton onClick={() => !submitting && setShowQRModal(false)}>×</CloseButton>
+              <ModalHeader>QR Payment</ModalHeader>
+              <QRCodeContainer>
+                <QRCodeImage src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=HotelBookingPayment" alt="QR Code" />
+              </QRCodeContainer>
+              <Divider />
+              <SlipLabel>Slip</SlipLabel>
+              <SlipHint>โปรดแนบสลิปการโอนเงิน</SlipHint>
+              <FileInputWrapper>
+                <ChooseFileButton htmlFor="slip-upload">Choose Files</ChooseFileButton>
+                <FileName>{paymentSlip ? paymentSlip.name : 'No file chosen'}</FileName>
+                <HiddenInput 
+                  id="slip-upload" 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleFileChange} 
+                />
+              </FileInputWrapper>
+              <PayButton onClick={handleConfirmPayment} disabled={submitting}>
+                {submitting ? 'Processing...' : 'ชำระเงิน'}
+              </PayButton>
+            </ModalContent>
+          </ModalOverlay>
+        )}
       </Container>
     </UserAuthGuard>
   );

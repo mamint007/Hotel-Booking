@@ -17,7 +17,7 @@ export class PaymentModel extends Model<
     declare payment_id: string
     declare payment_date: Date
     declare payment_status: string
-    declare slip_url: string
+    declare slip_url: string | null
     declare payment_due_time: Date
     declare booking_id: string
     declare employee_id: string | null
