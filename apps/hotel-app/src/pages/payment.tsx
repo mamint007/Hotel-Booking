@@ -404,6 +404,10 @@ export default function PaymentPage() {
         finalSlip = new File([blob], "mock-slip.png", { type: "image/png" });
       }
 
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      const memberId = user?.member_id || '';
+
       const formData = new FormData();
       formData.append('room_id', room.room_id);
       formData.append('check_in_date', checkInStr || '');
@@ -414,7 +418,7 @@ export default function PaymentPage() {
       formData.append('payment_type', (paymentType as string) || 'PAY');
       formData.append('additional_charges', JSON.stringify(additionalCharges));
       formData.append('payment_slip', finalSlip);
-
+      formData.append('member_id', memberId);
       // Using direct payload for now as per previous handlePayment, but with slip
       // If the backend expects FormData, this is correct. 
       // If it expects JSON, we might need a separate upload or Base64.

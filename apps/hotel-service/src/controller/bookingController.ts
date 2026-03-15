@@ -17,7 +17,8 @@ export const createBooking = () => async (req: Request, res: Response, next: Nex
             total_price,
             number_of_guests,
             payment_type,
-            additional_charges
+            additional_charges,
+            member_id
         } = req.body;
 
         // Validation
@@ -62,7 +63,7 @@ export const createBooking = () => async (req: Request, res: Response, next: Nex
 
         // 2. Handle Member ID (Assume from auth middleware, or use a default for now)
         // In a real app, res.locals.user.id would be set by verifyToken middleware
-        const member_id = res.locals.user?.id || 'M000001'; // Defaulting for demo if middleware not yet fully integrated
+        // Defaulting for demo if middleware not yet fully integrated
 
         // 3. Create Booking
         const booking = await BookingModel.create({
