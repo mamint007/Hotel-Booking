@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ServiceError } from "@hotel/helpers"
-import { sequelize, BookingModel, BookingDetailModel, PaymentModel, RoomModel } from "@hotel/models"
+import { sequelize, BookingModel, BookingDetailModel, PaymentModel, RoomModel, RoomTypeModel, PaymentTypeModel, CheckInCheckOutModel } from "@hotel/models"
 import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
@@ -85,6 +85,23 @@ export const createBooking = () => async (req: Request, res: Response, next: Nex
             room_id: room_id
         }, { transaction });
 
+        // 5. Create Stay Details (Check In/Out)
+        const lastStay = await CheckInCheckOutModel.findOne({ order: [['stay_id', 'DESC']] });
+        let nextStayId = '0000001';
+        if (lastStay) {
+            const lastIdNum = parseInt(lastStay.stay_id);
+            if (!isNaN(lastIdNum)) {
+                nextStayId = (lastIdNum + 1).toString().padStart(7, '0');
+            }
+        }
+
+        await CheckInCheckOutModel.create({
+            stay_id: nextStayId,
+            checkin_date: new Date(check_in_date),
+            checkout_date: new Date(check_out_date),
+            booking_id: nextBookingId
+        }, { transaction });
+
         // 5. Handle Slip Upload
         let slip_url = null;
         if (req.file) {
@@ -126,6 +143,57 @@ export const createBooking = () => async (req: Request, res: Response, next: Nex
     } catch (error) {
         await transaction.rollback();
         console.error('Booking Error:', error);
+        next(error);
+    }
+}
+export const getMyBookings = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id: member_id } = res.locals.user;
+
+        const bookings = await BookingModel.findAll({
+            where: { member_id },
+            include: [
+                {
+                    model: BookingDetailModel,
+                    as: 'booking_details',
+                    include: [
+                        {
+                            model: RoomModel,
+                            as: 'room',
+                            include: [
+                                {
+                                    model: RoomTypeModel,
+                                    as: 'room_type'
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    model: PaymentModel,
+                    as: 'payments',
+                    attributes: ['payment_status', 'payment_id']
+                },
+                {
+                    model: CheckInCheckOutModel,
+                    as: 'stay_details'
+                },
+                {
+                   model: PaymentTypeModel,
+                   as: 'payment_type'
+                }
+            ],
+            order: [['create_datetime', 'DESC']]
+        });
+
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Get My Bookings successfully',
+            data: bookings
+        };
+        next();
+    } catch (error) {
+        console.error('Get My Bookings Error:', error);
         next(error);
     }
 }

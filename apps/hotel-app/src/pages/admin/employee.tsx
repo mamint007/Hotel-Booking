@@ -3,7 +3,7 @@ import styled from "styled-components";
 import AdminAuthGuard from "../../components/AdminAuthGuard";
 import AdminLayout from "../../components/AdminLayout";
 import axios from "../../helpers/axios";
-import { X, Plus, UserPlus } from "lucide-react";
+import { X, Plus, UserPlus, ChevronDown } from "lucide-react";
 import Swal from 'sweetalert2';
 
 // Styled Components
@@ -46,20 +46,28 @@ const Card = styled.div`
   background: white;
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   border: 1px solid #e5e7eb;
 `;
 
-const Table = styled.table`
+const TableWrapper = styled.div`
+  overflow-x: auto;
+  width: 100%;
+`;
+
+const Table = styled.table<{ $hasDropdown: boolean }>`
   width: 100%;
   border-collapse: collapse;
+  margin-bottom: ${props => props.$hasDropdown ? '160px' : '0'};
+  transition: margin-bottom 0.3s ease;
 `;
 
 const Th = styled.th`
   text-align: left;
   padding: 16px;
   color: #34a853;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   border-bottom: 1px solid #e5e7eb;
 `;
 
@@ -67,31 +75,76 @@ const Td = styled.td`
   padding: 16px;
   border-bottom: 1px solid #f3f4f6;
   color: #4b5563;
+  font-size: 14px;
 `;
 
-const StatusBadge = styled.span`
-  background-color: #4CAF50;
+const StatusBadge = styled.button<{ $isActive: boolean }>`
+  background-color: ${props => props.$isActive ? '#10b981' : '#ef4444'};
   color: white;
-  padding: 4px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 100px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
+const DropdownWrapper = styled.div`
+  position: relative;
   display: inline-block;
 `;
 
-const StatusSelect = styled.select<{ $status: boolean }>`
-  padding: 6px 12px;
-  border-radius: 4px;
-  border: 1px solid transparent;
-  background-color: ${(props) => (props.$status ? '#4CAF50' : '#ef4444')};
-  font-size: 12px;
-  font-weight: 500;
-  color: white;
-  outline: none;
-  cursor: pointer;
+const DropdownContent = styled.div<{ show: boolean }>`
+  display: ${props => props.show ? 'block' : 'none'};
+  position: absolute;
+  background-color: white;
+  min-width: 130px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 8px;
+  right: 0;
+  border: 1px solid #e5e7eb;
+  animation: fadeIn 0.2s ease-out;
 
-  &:focus {
-     box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+`;
+
+const DropdownItem = styled.div<{ color: string }>`
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &:hover {
+    background-color: #f9fafb;
+    color: ${props => props.color};
+  }
+
+  &::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: ${props => props.color};
   }
 `;
 
@@ -252,6 +305,7 @@ interface Employee {
 export default function ManageEmployee() {
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [loading, setLoading] = useState(true);
+    const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
@@ -266,27 +320,29 @@ export default function ManageEmployee() {
         role_id: 'R03' // Default to Employee
     });
 
-    const handleStatusChange = async (id: string, newStatus: boolean) => {
-        const statusChar = newStatus ? 'A' : 'I';
-        setEmployees(prev => prev.map(emp =>
-            emp.employee_id === id ? { ...emp, is_active: statusChar } : emp
-        ));
+    const handleStatusChange = async (id: string, newStatus: string) => {
         try {
-            console.log(`Updating status for ${id} to ${statusChar}`);
-            await axios.patch(`/admin/employees/${id}/status`, { is_active: newStatus });
-              const Toast = Swal.mixin({
-                            toast: true,
-                            position: 'top-end',
-                            showConfirmButton: false,
-                            timer: 1500
-                        });
-            
-                        Toast.fire({
-                            icon: 'success',
-                            title: 'Status updated'
-                        })
+            await axios.patch(`/admin/employees/${id}/status`, { is_active: newStatus === 'A' });
+            setEmployees(prev => prev.map(emp =>
+                emp.employee_id === id ? { ...emp, is_active: newStatus } : emp
+            ));
+            setOpenDropdownId(null);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Status Updated',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1500
+            });
         } catch (error) {
             console.error(error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to update employee status.'
+            });
         }
     };
 
@@ -365,45 +421,62 @@ export default function ManageEmployee() {
                     {loading ? (
                         <EmptyState>Loading employees...</EmptyState>
                     ) : (
-                        <Table>
-                            <thead>
-                                <tr>
-                                    <Th>No.</Th>
-                                    <Th>Name</Th>
-                                    <Th>Lastname</Th>
-                                    <Th>Role</Th>
-                                    <Th>Action</Th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {employees.length > 0 ? (
-                                    employees.map((emp, index) => (
-                                        <tr key={emp.employee_id}>
-                                            <Td>{emp.employee_id}</Td>
-                                            <Td>{emp.emp_firstname}</Td>
-                                            <Td>{emp.emp_lastname}</Td>
-                                            <Td>{emp.role?.role_name || '-'}</Td>
-                                            <Td>
-                                                <StatusSelect
-                                                    $status={emp.is_active === 'A'}
-                                                    value={emp.is_active === 'A' ? "1" : "0"}
-                                                    onChange={(e) => handleStatusChange(emp.employee_id, e.target.value === "1")}
-                                                >
-                                                    <option value="1">Active</option>
-                                                    <option value="0">Inactive</option>
-                                                </StatusSelect>
+                        <TableWrapper>
+                            <Table $hasDropdown={!!openDropdownId}>
+                                <thead>
+                                    <tr>
+                                        <Th>No.</Th>
+                                        <Th>Name</Th>
+                                        <Th>Lastname</Th>
+                                        <Th>Role</Th>
+                                        <Th>Action</Th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {employees.length > 0 ? (
+                                        employees.map((emp, index) => (
+                                            <tr key={emp.employee_id}>
+                                                <Td>{emp.employee_id}</Td>
+                                                <Td>{emp.emp_firstname}</Td>
+                                                <Td>{emp.emp_lastname}</Td>
+                                                <Td>{emp.role?.role_name || '-'}</Td>
+                                                <Td>
+                                                    <DropdownWrapper>
+                                                        <StatusBadge
+                                                            $isActive={emp.is_active === 'A'}
+                                                            onClick={() => setOpenDropdownId(openDropdownId === emp.employee_id ? null : emp.employee_id)}
+                                                        >
+                                                            {emp.is_active === 'A' ? 'Active' : 'Inactive'}
+                                                            <ChevronDown size={14} />
+                                                        </StatusBadge>
+                                                        <DropdownContent show={openDropdownId === emp.employee_id}>
+                                                            <DropdownItem
+                                                                color="#10b981"
+                                                                onClick={() => handleStatusChange(emp.employee_id, 'A')}
+                                                            >
+                                                                Active
+                                                            </DropdownItem>
+                                                            <DropdownItem
+                                                                color="#ef4444"
+                                                                onClick={() => handleStatusChange(emp.employee_id, 'I')}
+                                                            >
+                                                                Inactive
+                                                            </DropdownItem>
+                                                        </DropdownContent>
+                                                    </DropdownWrapper>
+                                                </Td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <Td colSpan={5}>
+                                                <EmptyState>No employees found.</EmptyState>
                                             </Td>
                                         </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <Td colSpan={5}>
-                                            <EmptyState>No employees found.</EmptyState>
-                                        </Td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </Table>
+                                    )}
+                                </tbody>
+                            </Table>
+                        </TableWrapper>
                     )}
                 </Card>
 

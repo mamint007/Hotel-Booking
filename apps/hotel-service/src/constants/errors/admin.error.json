@@ -222,5 +222,37 @@
             "en": "Promotion quota has been reached.",
             "th": "ขออภัย โปรโมชั่นนี้มีการใช้สิทธิ์ครบจำนวนแล้ว"
         }
+    },
+    "ERR_BOOKING_UPDATE_REQUIRED": {
+        "statusCode": 400,
+        "resCode": "1428",
+        "resDesc": {
+            "en": "Booking ID and status are required.",
+            "th": "กรุณาระบุรหัสการจองและสถานะ"
+        }
+    },
+    "ERR_BOOKING_NOT_FOUND": {
+        "statusCode": 404,
+        "resCode": "1429",
+        "resDesc": {
+            "en": "Booking not found.",
+            "th": "ไม่พบข้อมูลการจอง"
+        }
+    },
+    "ERR_PAYMENT_UPDATE_REQUIRED": {
+        "statusCode": 400,
+        "resCode": "1430",
+        "resDesc": {
+            "en": "Payment ID and status are required.",
+            "th": "กรุณาระบุรหัสการชำระเงินและสถานะ"
+        }
+    },
+    "ERR_PAYMENT_NOT_FOUND": {
+        "statusCode": 404,
+        "resCode": "1431",
+        "resDesc": {
+            "en": "Payment not found.",
+            "th": "ไม่พบข้อมูลการชำระเงิน"
+        }
     }
 }

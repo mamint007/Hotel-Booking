@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Calendar, User } from "lucide-react";
+import { Calendar, User, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import styled, { createGlobalStyle } from "styled-components";
 import { Container, Row, Col, ScreenClassProvider } from "react-grid-system";
 import Navbar from "../components/Navbar";
@@ -310,11 +310,214 @@ const AboutText = styled.p`
   }
 `;
 
+/* ===== Promotions Section ===== */
+const PromotionsSection = styled.section`
+  padding: 4rem 0;
+`;
+
+const SectionTitle = styled.h2`
+  font-size: 2rem;
+  font-weight: 700;
+  color: #4CAF50;
+  font-style: italic;
+  margin-bottom: 2rem;
+`;
+
+const PromotionCarousel = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+`;
+
+const CarouselArrow = styled.button`
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    background: #f9fafb;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  }
+`;
+
+const PromotionCard = styled.div`
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  max-width: 420px;
+  width: 100%;
+  background: white;
+`;
+
+const PromotionText = styled.p`
+  font-size: 1.1rem;
+  color: #333;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+
+  strong {
+    font-weight: 700;
+  }
+`;
+
+const CouponLabel = styled.span`
+  font-size: 0.85rem;
+  color: #9ca3af;
+  display: block;
+  margin-bottom: 0.25rem;
+`;
+
+const CouponName = styled.span`
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #4CAF50;
+  display: block;
+`;
+
+const SectionDivider = styled.hr`
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 0;
+`;
+
+/* ===== Customer Reviews Section ===== */
+const ReviewsSection = styled.section`
+  padding: 4rem 0;
+`;
+
+const ReviewsGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+  }
+`;
+
+const ReviewCard = styled.div`
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  background: white;
+`;
+
+const ReviewHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+`;
+
+const ReviewerInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+`;
+
+const ReviewerAvatar = styled.div`
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #4CAF50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 0.9rem;
+`;
+
+const ReviewerName = styled.span`
+  font-weight: 600;
+  color: #4CAF50;
+  font-size: 0.95rem;
+`;
+
+const StarRating = styled.div`
+  display: flex;
+  gap: 2px;
+`;
+
+const ReviewText = styled.p`
+  color: #6b7280;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  word-break: break-word;
+`;
+
+const ReviewDate = styled.span`
+  font-size: 0.8rem;
+  color: #9ca3af;
+`;
+
+const FooterBanner = styled.div`
+  background-color: #4CAF50;
+  padding: 2.5rem 0;
+  margin-top: 2rem;
+`;
+
+const promotions = [
+  {
+    text: 'Celebrate your **birthday month** with a **20% discount for members**',
+    coupon: 'โปรวันเกิด',
+  },
+  {
+    text: 'Stay 3 nights and get **1 night free** for all room types',
+    coupon: 'STAY3FREE',
+  },
+  {
+    text: 'Early bird booking! Get **15% off** when you book 30 days in advance',
+    coupon: 'EARLYBIRD15',
+  },
+];
+
+const reviews = [
+  {
+    name: 'Leena Puangmanee',
+    rating: 4,
+    text: 'The hotel was fantastic! The room was clean, spacious, and had everything we needed. The staff was incredibly friendly and helpful. The breakfast buffet was amazing with so many options. Would definitely recommend and come back again!',
+    date: 'Mar 31, 2026',
+  },
+  {
+    name: 'Warissara Prothumpha',
+    rating: 5,
+    text: 'Absolutely wonderful experience! The pool area was beautiful with a great view. Room service was quick and the food was delicious. The spa services were top-notch and very relaxing. Perfect place for a weekend getaway.',
+    date: 'Mar 29, 2026',
+  },
+  {
+    name: 'Somchai Jaidee',
+    rating: 5,
+    text: 'Best hotel experience I have ever had. The attention to detail was impressive. From the welcome drink to the turndown service, everything was perfect. Highly recommended for families and couples alike!',
+    date: 'Mar 25, 2026',
+  },
+  {
+    name: 'Natthaya Srisuwan',
+    rating: 4,
+    text: 'Great location and amazing facilities. The gym was well-equipped and the infinity pool was stunning, especially at sunset. The staff went above and beyond to make our anniversary special with a cake and room decoration.',
+    date: 'Mar 20, 2026',
+  },
+];
+
 export default function Home() {
   const router = useRouter();
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState("2");
+  const [promoIndex, setPromoIndex] = useState(0);
 
   useEffect(() => {
     const today = new Date();
@@ -465,12 +668,44 @@ export default function Home() {
           </Container>
         </BookingBar>
 
+        {/* Promotions Section */}
+        <PromotionsSection>
+          <Container>
+            <SectionTitle>Promotions</SectionTitle>
+            <PromotionCarousel>
+              <CarouselArrow
+                onClick={() => setPromoIndex((prev) => (prev - 1 + promotions.length) % promotions.length)}
+                aria-label="Previous promotion"
+              >
+                <ChevronLeft size={20} color="#9ca3af" />
+              </CarouselArrow>
+              <PromotionCard>
+                <PromotionText
+                  dangerouslySetInnerHTML={{
+                    __html: promotions[promoIndex].text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'),
+                  }}
+                />
+                <CouponLabel>use coupon name :</CouponLabel>
+                <CouponName>{promotions[promoIndex].coupon}</CouponName>
+              </PromotionCard>
+              <CarouselArrow
+                onClick={() => setPromoIndex((prev) => (prev + 1) % promotions.length)}
+                aria-label="Next promotion"
+              >
+                <ChevronRight size={20} color="#9ca3af" />
+              </CarouselArrow>
+            </PromotionCarousel>
+          </Container>
+        </PromotionsSection>
+
+        <SectionDivider />
+
         {/* About Section */}
         <AboutSection>
           <Container>
-            <Row align="center" style={{ gap: '64px' }}>
+            <Row align="center">
               {/* Image Frame */}
-              <Col md={6}>
+              <Col md={6} style={{ paddingRight: '2rem' }}>
                 <ImageFrame>
                   <AboutImage>
                     <img
@@ -482,7 +717,7 @@ export default function Home() {
               </Col>
 
               {/* Text Content */}
-              <Col md={5}>
+              <Col md={6}>
                 <AboutContent>
                   <AboutTitle>
                     A best to enjoy <br />
@@ -499,6 +734,50 @@ export default function Home() {
             </Row>
           </Container>
         </AboutSection>
+
+        <SectionDivider />
+
+        {/* Customer Reviews Section */}
+        <ReviewsSection>
+          <Container>
+            <SectionTitle>Our Customer Reviews</SectionTitle>
+            <ReviewsGrid>
+              {reviews.map((review, idx) => (
+                <ReviewCard key={idx}>
+                  <ReviewHeader>
+                    <ReviewerInfo>
+                      <ReviewerAvatar>
+                        <User size={18} />
+                      </ReviewerAvatar>
+                      <ReviewerName>{review.name}</ReviewerName>
+                    </ReviewerInfo>
+                    <StarRating>
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          size={16}
+                          fill={i < review.rating ? '#FBBF24' : 'none'}
+                          color={i < review.rating ? '#FBBF24' : '#D1D5DB'}
+                        />
+                      ))}
+                    </StarRating>
+                  </ReviewHeader>
+                  <ReviewText>{review.text}</ReviewText>
+                  <ReviewDate>{review.date}</ReviewDate>
+                </ReviewCard>
+              ))}
+            </ReviewsGrid>
+          </Container>
+        </ReviewsSection>
+
+        {/* Footer Banner */}
+        <FooterBanner>
+          <Container>
+            <div style={{ textAlign: 'center', color: 'white' }}>
+              {/* Placeholder for footer content */}
+            </div>
+          </Container>
+        </FooterBanner>
       </main>
     </ScreenClassProvider>
   );

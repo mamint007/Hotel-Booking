@@ -1,8 +1,19 @@
 import express, { Request, Response, NextFunction } from 'express';
-import { createBooking } from "../controller/bookingController";
+import { createBooking, getMyBookings } from "../controller/bookingController";
 import { upload } from '../middleware/uploadMiddleware';
+import { verifyMemberToken } from "../middleware/authMiddleware";
 
 const router = express.Router();
+
+router.get(
+    '/my-bookings',
+    verifyMemberToken(),
+    getMyBookings(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.json(res.locals.response);
+        next();
+    }
+);
 
 router.post(
     '/',

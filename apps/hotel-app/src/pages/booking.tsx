@@ -314,9 +314,6 @@ export default function BookingPage() {
   const [appliedPromo, setAppliedPromo] = useState<any>(null);
   const [applying, setApplying] = useState(false);
 
-
-
-
   useEffect(() => {
     if (router.isReady) {
       if (checkIn) setCheckInDate(checkIn as string);
@@ -603,7 +600,6 @@ export default function BookingPage() {
                   </button>
                 </CouponInput>
 
-
                 <SummaryTitle>Proprietary Summary</SummaryTitle>
                 <PriceRow>
                   <span>Payment Type</span>
@@ -659,9 +655,6 @@ export default function BookingPage() {
                     }
                   });
                 }}>NEXT</NextButton>
-
-
-
               </Section>
             </RightColumn>
           </ContentGrid>

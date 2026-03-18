@@ -3,7 +3,7 @@ import styled from "styled-components";
 import AdminAuthGuard from "../../components/AdminAuthGuard";
 import AdminLayout from "../../components/AdminLayout";
 import axios from "../../helpers/axios";
-import { X, Plus } from "lucide-react";
+import { X, Plus, ChevronDown } from "lucide-react";
 import Swal from 'sweetalert2';
 
 // Styled Components
@@ -18,18 +18,22 @@ const PageHeader = styled.h2`
 `;
 
 const AddButton = styled.button`
-  background-color: #10b981; /* Green */
+  background-color: #34a853;
   color: white;
   border: none;
   border-radius: 4px;
-  padding: 8px 16px;
+  padding: 10px 20px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   text-transform: uppercase;
+  transition: background-color 0.2s;
   
   &:hover {
-    background-color: #059669;
+    background-color: #2e8b46;
   }
 `;
 
@@ -37,22 +41,29 @@ const Card = styled.div`
   background: white;
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   border: 1px solid #e5e7eb;
-  overflow-x: auto;
 `;
 
-const Table = styled.table`
+const TableWrapper = styled.div`
+  overflow-x: auto;
+  width: 100%;
+`;
+
+const Table = styled.table<{ $hasDropdown: boolean }>`
   width: 100%;
   border-collapse: collapse;
   min-width: 800px;
+  margin-bottom: ${props => props.$hasDropdown ? '160px' : '0'};
+  transition: margin-bottom 0.3s ease;
 `;
 
 const Th = styled.th`
   text-align: center;
   padding: 16px;
   color: #34a853;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   border-bottom: 1px solid #e5e7eb;
   white-space: nowrap;
 `;
@@ -62,6 +73,7 @@ const Td = styled.td`
   border-bottom: 1px solid #f3f4f6;
   color: #4b5563;
   text-align: center;
+  font-size: 14px;
 `;
 
 const ActionButton = styled.button<{ color?: string }>`
@@ -82,20 +94,73 @@ const ActionButton = styled.button<{ color?: string }>`
   }
 `;
 
-const StatusSelect = styled.select<{ status: string }>`
+const StatusBadge = styled.button<{ status: string }>`
   background-color: ${props => props.status === 'A' ? '#10b981' : '#ef4444'};
   color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 110px;
   border: none;
   cursor: pointer;
-  outline: none;
-  
-  option {
-    background-color: white;
-    color: black;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
+const DropdownWrapper = styled.div`
+  position: relative;
+  display: inline-block;
+`;
+
+const DropdownContent = styled.div<{ show: boolean }>`
+  display: ${props => props.show ? 'block' : 'none'};
+  position: absolute;
+  background-color: white;
+  min-width: 150px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 8px;
+  right: 0;
+  border: 1px solid #e5e7eb;
+  animation: fadeIn 0.2s ease-out;
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+`;
+
+const DropdownItem = styled.div<{ color: string }>`
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &:hover {
+    background-color: #f9fafb;
+    color: ${props => props.color};
+  }
+
+  &::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: ${props => props.color};
   }
 `;
 
@@ -259,6 +324,7 @@ interface Room {
 export default function ManageRoom() {
     const [rooms, setRooms] = useState<Room[]>([]);
     const [loading, setLoading] = useState(true);
+    const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -412,9 +478,24 @@ export default function ManageRoom() {
                 setRooms(prevRooms => prevRooms.map(room =>
                     room.room_id === roomId ? { ...room, room_status: newStatus } : room
                 ));
+                setOpenDropdownId(null);
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Status Updated',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
             }
         } catch (error) {
             console.error("Failed to update status", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to update room status.'
+            });
         }
     };
 
@@ -520,61 +601,80 @@ export default function ManageRoom() {
         <AdminAuthGuard>
             <AdminLayout activeMenu="Manage Room" title="Admin - Manage Room">
                 <PageHeader>
-                    Manage Room
-                    <AddButton onClick={handleAddClick}>ADD ROOM</AddButton>
+                    Manage Rooms
+                    <AddButton onClick={handleAddClick}>
+                        ADD ROOM
+                    </AddButton>
                 </PageHeader>
                 <Card>
                     {loading ? (
                         <EmptyState>Loading rooms...</EmptyState>
                     ) : (
-                        <Table>
-                            <thead>
-                                <tr>
-                                    <Th>Room Number</Th>
-                                    <Th>Floor</Th>
-                                    <Th>Price</Th>
-                                    <Th>Bed Type</Th>
-                                    <Th>Bed Quantity</Th>
-                                    <Th>Number of Guests</Th>
-                                    <Th>Room Status</Th>
-                                    <Th>Action</Th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {rooms.length > 0 ? (
-                                    rooms.map((room) => (
-                                        <tr key={room.room_id}>
-                                            <Td>{room.room_number}</Td>
-                                            <Td>{room.floor}</Td>
-                                            <Td>{parseFloat(room.price_per_night).toFixed(2)}</Td>
-                                            <Td>{mapBedType(room.bed_type)}</Td>
-                                            <Td>{room.bed_quantity}</Td>
-                                            <Td>{room.max_guest}</Td>
-                                            <Td>
-                                                <StatusSelect
-                                                    status={room.room_status}
-                                                    value={room.room_status}
-                                                    onChange={(e) => handleStatusChange(room.room_id, e.target.value)}
-                                                >
-                                                    <option value="A">Available</option>
-                                                    <option value="U">Unavailable</option>
-                                                </StatusSelect>
-                                            </Td>
-                                            <Td>
-                                                <ActionButton color="#3b82f6" onClick={() => handleEdit(room)}>EDIT</ActionButton>
-                                                <ActionButton color="#ef4444" onClick={() => handleDelete(room.room_id)}>DELETE</ActionButton>
+                        <TableWrapper>
+                            <Table $hasDropdown={!!openDropdownId}>
+                                <thead>
+                                    <tr>
+                                        <Th>Room Number</Th>
+                                        <Th>Floor</Th>
+                                        <Th>Price</Th>
+                                        <Th>Bed Type</Th>
+                                        <Th>Bed Quantity</Th>
+                                        <Th>Number of Guests</Th>
+                                        <Th>Room Status</Th>
+                                        <Th>Action</Th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {rooms.length > 0 ? (
+                                        rooms.map((room) => (
+                                            <tr key={room.room_id}>
+                                                <Td>{room.room_number}</Td>
+                                                <Td>{room.floor}</Td>
+                                                <Td>{parseFloat(room.price_per_night).toFixed(2)}</Td>
+                                                <Td>{mapBedType(room.bed_type)}</Td>
+                                                <Td>{room.bed_quantity}</Td>
+                                                <Td>{room.max_guest}</Td>
+                                                <Td style={{ textAlign: 'center' }}>
+                                                    <DropdownWrapper>
+                                                        <StatusBadge
+                                                            status={room.room_status}
+                                                            onClick={() => setOpenDropdownId(openDropdownId === room.room_id ? null : room.room_id)}
+                                                        >
+                                                            {room.room_status === 'A' ? 'Available' : 'Unavailable'}
+                                                            <ChevronDown size={14} />
+                                                        </StatusBadge>
+                                                        <DropdownContent show={openDropdownId === room.room_id}>
+                                                            <DropdownItem
+                                                                color="#10b981"
+                                                                onClick={() => handleStatusChange(room.room_id, 'A')}
+                                                            >
+                                                                Available
+                                                            </DropdownItem>
+                                                            <DropdownItem
+                                                                color="#ef4444"
+                                                                onClick={() => handleStatusChange(room.room_id, 'U')}
+                                                            >
+                                                                Unavailable
+                                                            </DropdownItem>
+                                                        </DropdownContent>
+                                                    </DropdownWrapper>
+                                                </Td>
+                                                <Td>
+                                                    <ActionButton color="#3b82f6" onClick={() => handleEdit(room)}>EDIT</ActionButton>
+                                                    <ActionButton color="#ef4444" onClick={() => handleDelete(room.room_id)}>DELETE</ActionButton>
+                                                </Td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <Td colSpan={8}>
+                                                <EmptyState>No rooms found.</EmptyState>
                                             </Td>
                                         </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <Td colSpan={8}>
-                                            <EmptyState>No rooms found.</EmptyState>
-                                        </Td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </Table>
+                                    )}
+                                </tbody>
+                            </Table>
+                        </TableWrapper>
                     )}
                 </Card>
 

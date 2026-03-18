@@ -743,3 +743,52 @@ export const deletePromotion = () => async (req: Request, res: Response, next: N
         next(error);
     }
 }
+
+export const updateBookingStatus = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { booking_status } = req.body;
+
+        if (!id || !booking_status) {
+            return next(new ServiceError(AdminMasterError.ERR_BOOKING_UPDATE_REQUIRED || 'Booking ID and booking_status are required'));
+        }
+
+        const booking = await BookingModel.findByPk(id);
+        if (!booking) {
+            return next(new ServiceError(AdminMasterError.ERR_BOOKING_NOT_FOUND || 'Booking not found'));
+        }
+
+        booking.booking_status = booking_status;
+        await booking.save();
+
+        res.locals.booking = booking;
+        next();
+
+    } catch (error) {
+        next(error);
+    }
+}
+export const updatePaymentStatus = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { payment_status } = req.body;
+
+        if (!id || !payment_status) {
+            return next(new ServiceError(AdminMasterError.ERR_PAYMENT_UPDATE_REQUIRED || 'Payment ID and payment_status are required'));
+        }
+
+        const payment = await PaymentModel.findByPk(id);
+        if (!payment) {
+            return next(new ServiceError(AdminMasterError.ERR_PAYMENT_NOT_FOUND || 'Payment not found'));
+        }
+
+        payment.payment_status = payment_status;
+        await payment.save();
+
+        res.locals.payment = payment;
+        next();
+
+    } catch (error) {
+        next(error);
+    }
+}

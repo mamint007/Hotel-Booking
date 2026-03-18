@@ -3,7 +3,7 @@ import styled from "styled-components";
 import AdminAuthGuard from "../../components/AdminAuthGuard";
 import AdminLayout from "../../components/AdminLayout";
 import axios from "../../helpers/axios";
-import { X } from "lucide-react";
+import { X, Plus } from "lucide-react";
 import Swal from 'sweetalert2';
 
 // Styled Components
@@ -18,18 +18,22 @@ const PageHeader = styled.h2`
 `;
 
 const AddButton = styled.button`
-  background-color: #10b981; /* Green */
+  background-color: #34a853;
   color: white;
   border: none;
   border-radius: 4px;
-  padding: 8px 16px;
+  padding: 10px 20px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   text-transform: uppercase;
+  transition: background-color 0.2s;
   
   &:hover {
-    background-color: #059669;
+    background-color: #2e8b46;
   }
 `;
 
@@ -39,6 +43,8 @@ const Card = styled.div`
   padding: 24px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   border: 1px solid #e5e7eb;
+  max-width: 600px;
+  margin: 0 auto;
 `;
 
 const Table = styled.table`
@@ -46,18 +52,21 @@ const Table = styled.table`
   border-collapse: collapse;
 `;
 
-const Th = styled.th`
-  text-align: left;
+const Th = styled.th<{ align?: string }>`
+  text-align: ${props => props.align || 'left'};
   padding: 16px;
   color: #34a853;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 600;
   border-bottom: 1px solid #e5e7eb;
 `;
 
-const Td = styled.td`
+const Td = styled.td<{ align?: string }>`
   padding: 16px;
   border-bottom: 1px solid #f3f4f6;
   color: #4b5563;
+  font-size: 16px;
+  text-align: ${props => props.align || 'left'};
 `;
 
 const ActionButton = styled.button<{ color?: string }>`
@@ -66,7 +75,7 @@ const ActionButton = styled.button<{ color?: string }>`
   border: none;
   border-radius: 4px;
   padding: 6px 12px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   cursor: pointer;
@@ -305,7 +314,9 @@ export default function ManageRoomType() {
       <AdminLayout activeMenu="Manage Room Type" title="Admin - Manage Room Type">
         <PageHeader>
           Manage Room Type
-          <AddButton onClick={handleAddNew}>ADD ROOM TYPE</AddButton>
+          <AddButton onClick={handleAddNew}>
+            ADD ROOM TYPE
+          </AddButton>
         </PageHeader>
         <Card>
           {loading ? (
@@ -314,7 +325,7 @@ export default function ManageRoomType() {
             <Table>
               <thead>
                 <tr>
-                  <Th>No.</Th>
+                  <Th align="center" style={{ width: '80px' }}>No.</Th>
                   <Th>Name of Room Type</Th>
                   <Th>Action</Th>
                 </tr>
@@ -323,7 +334,7 @@ export default function ManageRoomType() {
                 {roomTypes.length > 0 ? (
                   roomTypes.map((rt, index) => (
                     <tr key={rt.room_type_id}>
-                      <Td>{index + 1}</Td>
+                      <Td align="center">{index + 1}</Td>
                       <Td>{rt.room_type_name}</Td>
                       <Td>
                         <ActionButton color="#3b82f6" onClick={() => handleEdit(rt)}>EDIT</ActionButton>
@@ -333,7 +344,7 @@ export default function ManageRoomType() {
                   ))
                 ) : (
                   <tr>
-                    <Td colSpan={3}>
+                    <Td colSpan={3} align="center">
                       <EmptyState>No room types found.</EmptyState>
                     </Td>
                   </tr>

@@ -214,6 +214,34 @@ const ModalContent = styled.div`
   }
 `;
 
+const SuccessModalContent = styled(ModalContent)`
+  max-width: 380px;
+  text-align: center;
+  padding: 48px 32px;
+`;
+
+const SuccessTitle = styled.h2`
+  color: #4CAF50;
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+`;
+
+const SuccessText = styled.p`
+  color: #6b7280;
+  font-size: 18px;
+  line-height: 1.4;
+  margin: 0;
+`;
+
+const SuccessDivider = styled.div`
+  height: 1px;
+  background-color: #f3f4f6;
+  margin: 16px 0;
+`;
+
 const ModalHeader = styled.h2`
   text-align: center;
   color: #4CAF50;
@@ -222,16 +250,33 @@ const ModalHeader = styled.h2`
   margin-bottom: 24px;
 `;
 
-const QRCodeContainer = styled.div`
-  display: flex;
-  justify-content: center;
+const BankInfoBox = styled.div`
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px 24px;
+  text-align: center;
   margin-bottom: 24px;
+  background: #fafafa;
+
+  p {
+    font-size: 15px;
+    color: #374151;
+    margin: 4px 0;
+    line-height: 1.6;
+  }
 `;
 
-const QRCodeImage = styled.img`
-  width: 220px;
-  height: 220px;
-  object-fit: contain;
+const CountdownBadge = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #6b7280;
+  font-size: 13px;
+  white-space: nowrap;
+
+  svg {
+    flex-shrink: 0;
+  }
 `;
 
 const Divider = styled.div`
@@ -327,7 +372,42 @@ export default function PaymentPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [currentStep, setCurrentStep] = useState(2);
   const [paymentSlip, setPaymentSlip] = useState<File | null>(null);
+  const [countdown, setCountdown] = useState(24 * 60 * 60); // 24 hours in seconds
+  const [timerStarted, setTimerStarted] = useState(false);
+
+  // Start timer once when modal opens for the first time
+  useEffect(() => {
+    if (showQRModal && !timerStarted) {
+      setTimerStarted(true);
+    }
+  }, [showQRModal, timerStarted]);
+
+  // Keep timer running in background once started
+  useEffect(() => {
+    if (!timerStarted) return;
+    
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timerStarted]);
+
+  const formatCountdown = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return `${h} hrs ${m} min ${s} sec`;
+  };
 
   useEffect(() => {
     if (router.isReady && roomIdStr) {
@@ -432,14 +512,13 @@ export default function PaymentPage() {
 
       if (res.data && res.data.res_code === '0000') {
         setShowQRModal(false);
-        Swal.fire({
-          icon: 'success',
-          title: 'Payment Successful',
-          text: 'Your booking has been confirmed!',
-          confirmButtonColor: '#4CAF50'
-        }).then(() => {
-          router.push('/book');
-        });
+        setCurrentStep(3);
+        setShowSuccessModal(true);
+        
+        // Auto redirect after 1.5 second
+        setTimeout(() => {
+          router.push('/');
+        }, 1500);
       }
     } catch (error: any) {
       console.error(error);
@@ -460,18 +539,18 @@ export default function PaymentPage() {
       <Container>
         <Wrapper>
           <StepperContainer>
-            <Step completed>
-              <StepCircle completed>1</StepCircle>
+            <Step completed={currentStep > 1} active={currentStep === 1}>
+              <StepCircle completed={currentStep > 1} active={currentStep === 1}>1</StepCircle>
               <span>Booking</span>
             </Step>
-            <StepLine active />
-            <Step active>
-              <StepCircle active>2</StepCircle>
+            <StepLine active={currentStep >= 2} />
+            <Step completed={currentStep > 2} active={currentStep === 2}>
+              <StepCircle completed={currentStep > 2} active={currentStep === 2}>2</StepCircle>
               <span>Payment</span>
             </Step>
-            <StepLine />
-            <Step>
-              <StepCircle>3</StepCircle>
+            <StepLine active={currentStep >= 3} />
+            <Step completed={currentStep > 3} active={currentStep === 3}>
+              <StepCircle completed={currentStep > 3} active={currentStep === 3}>3</StepCircle>
               <span>Success</span>
             </Step>
           </StepperContainer>
@@ -541,27 +620,53 @@ export default function PaymentPage() {
           <ModalOverlay onClick={() => !submitting && setShowQRModal(false)}>
             <ModalContent onClick={(e) => e.stopPropagation()}>
               <CloseButton onClick={() => !submitting && setShowQRModal(false)}>×</CloseButton>
-              <ModalHeader>QR Payment</ModalHeader>
-              <QRCodeContainer>
-                <QRCodeImage src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=HotelBookingPayment" alt="QR Code" />
-              </QRCodeContainer>
+              <ModalHeader>Payment</ModalHeader>
+
+              {/* Bank Account Info */}
+              <BankInfoBox>
+                <p>ชื่อบัญชี : โรงแรมออนไลน์</p>
+                <p>เลขบัญชี : 123-456-7890</p>
+              </BankInfoBox>
+
               <Divider />
-              <SlipLabel>Slip</SlipLabel>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
+                <SlipLabel style={{ marginBottom: 0 }}>Slip</SlipLabel>
+                <CountdownBadge>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  {formatCountdown(countdown)}
+                </CountdownBadge>
+              </div>
               <SlipHint>โปรดแนบสลิปการโอนเงิน</SlipHint>
               <FileInputWrapper>
                 <ChooseFileButton htmlFor="slip-upload">Choose Files</ChooseFileButton>
                 <FileName>{paymentSlip ? paymentSlip.name : 'No file chosen'}</FileName>
-                <HiddenInput 
-                  id="slip-upload" 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={handleFileChange} 
+                <HiddenInput
+                  id="slip-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
                 />
               </FileInputWrapper>
+
               <PayButton onClick={handleConfirmPayment} disabled={submitting}>
                 {submitting ? 'Processing...' : 'ชำระเงิน'}
               </PayButton>
             </ModalContent>
+          </ModalOverlay>
+        )}
+        {showSuccessModal && (
+          <ModalOverlay onClick={() => router.push('/book')}>
+            <SuccessModalContent onClick={(e) => e.stopPropagation()}>
+              <SuccessTitle>THANK YOU</SuccessTitle>
+              <SuccessDivider />
+              <SuccessText>
+                Payment verification<br />in progress
+              </SuccessText>
+            </SuccessModalContent>
           </ModalOverlay>
         )}
       </Container>

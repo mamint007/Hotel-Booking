@@ -4,7 +4,7 @@ import AdminAuthGuard from "../../components/AdminAuthGuard";
 import AdminLayout from "../../components/AdminLayout";
 import axios from "../../helpers/axios";
 import Swal from 'sweetalert2';
-import { X } from "lucide-react";
+import { X, Plus, ChevronDown } from "lucide-react";
 
 // Styled Components
 const PageHeader = styled.div`
@@ -47,13 +47,19 @@ const Card = styled.div`
   padding: 24px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   border: 1px solid #e5e7eb;
-  overflow-x: auto;
 `;
 
-const Table = styled.table`
+const TableWrapper = styled.div`
+  overflow-x: auto;
+  width: 100%;
+`;
+
+const Table = styled.table<{ $hasDropdown: boolean }>`
   width: 100%;
   border-collapse: collapse;
   min-width: 1000px;
+  margin-bottom: ${props => props.$hasDropdown ? '120px' : '0'};
+  transition: margin-bottom 0.3s ease;
 `;
 
 const Thead = styled.thead`
@@ -61,20 +67,21 @@ const Thead = styled.thead`
 `;
 
 const Th = styled.th`
-  text-align: left;
-  padding: 16px;
+  text-align: center;
+  padding: 14px;
   color: #34a853; /* Theme Green */
-  font-weight: 500;
-  white-space: nowrap;
   font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
 `;
 
 const Td = styled.td`
-  padding: 16px;
+  padding: 14px;
   border-bottom: 1px solid #f3f4f6;
   color: #4b5563;
-  font-size: 13px;
+  font-size: 14px;
   vertical-align: middle;
+  text-align: center;
 `;
 
 const ActionButton = styled.button<{ variant?: 'edit' | 'delete' }>`
@@ -240,20 +247,73 @@ const SubmitButton = styled.button`
   }
 `;
 
-const StatusSelect = styled.select<{ status: string }>`
-  background-color: ${props => props.status === 'A' ? '#10b981' : '#ef4444'};
+const StatusBadge = styled.button<{ active: boolean }>`
+  background-color: ${props => props.active ? '#10b981' : '#ef4444'};
   color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 100px;
   border: none;
   cursor: pointer;
-  outline: none;
-  
-  option {
-    background-color: white;
-    color: black;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
+const DropdownWrapper = styled.div`
+  position: relative;
+  display: inline-block;
+`;
+
+const DropdownContent = styled.div<{ show: boolean }>`
+  display: ${props => props.show ? 'block' : 'none'};
+  position: absolute;
+  background-color: white;
+  min-width: 130px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 8px;
+  right: 0;
+  border: 1px solid #e5e7eb;
+  animation: fadeIn 0.2s ease-out;
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+`;
+
+const DropdownItem = styled.div<{ color: string }>`
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #f9fafb;
+    color: ${props => props.color};
+  }
+
+  &::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: ${props => props.color};
   }
 `;
 
@@ -284,11 +344,12 @@ interface PromotionFormData {
 
 export default function PromotionPage() {
     const [promotions, setPromotions] = useState<Promotion[]>([]);
+    const [currentPromoId, setCurrentPromoId] = useState<string | null>(null);
+    const [submitting, setSubmitting] = useState(false);
+    const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
-    const [currentPromoId, setCurrentPromoId] = useState<string | null>(null);
-    const [submitting, setSubmitting] = useState(false);
 
     const initialFormData: PromotionFormData = {
         promo_name: '',
@@ -434,6 +495,7 @@ export default function PromotionPage() {
             setPromotions(prev => prev.map(p =>
                 p.promo_id === id ? { ...p, is_active: newStatus } : p
             ));
+            setOpenDropdownId(null);
 
             const Toast = Swal.mixin({
                 toast: true,
@@ -483,7 +545,8 @@ export default function PromotionPage() {
                     {loading ? (
                         <EmptyState>Loading promotions...</EmptyState>
                     ) : (
-                        <Table>
+                        <TableWrapper>
+                            <Table $hasDropdown={!!openDropdownId}>
                             <Thead>
                                 <tr>
                                     <Th>No</Th>
@@ -511,14 +574,29 @@ export default function PromotionPage() {
                                             <Td style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={promo.promo_detail}>{promo.promo_detail}</Td>
                                             <Td>{promo.employee ? `${promo.employee.emp_firstname} ${promo.employee.emp_lastname}` : '-'}</Td>
                                             <Td>
-                                                <StatusSelect
-                                                    value={promo.is_active}
-                                                    status={promo.is_active}
-                                                    onChange={(e) => handleStatusChange(promo.promo_id, e.target.value)}
-                                                >
-                                                    <option value="A">Active</option>
-                                                    <option value="I">Inactive</option>
-                                                </StatusSelect>
+                                                <DropdownWrapper>
+                                                    <StatusBadge
+                                                        active={promo.is_active === 'A'}
+                                                        onClick={() => setOpenDropdownId(openDropdownId === promo.promo_id ? null : promo.promo_id)}
+                                                    >
+                                                        {promo.is_active === 'A' ? 'Active' : 'Inactive'}
+                                                        <ChevronDown size={14} />
+                                                    </StatusBadge>
+                                                    <DropdownContent show={openDropdownId === promo.promo_id}>
+                                                        <DropdownItem
+                                                            color="#10b981"
+                                                            onClick={() => handleStatusChange(promo.promo_id, 'A')}
+                                                        >
+                                                            Active
+                                                        </DropdownItem>
+                                                        <DropdownItem
+                                                            color="#ef4444"
+                                                            onClick={() => handleStatusChange(promo.promo_id, 'I')}
+                                                        >
+                                                            Inactive
+                                                        </DropdownItem>
+                                                    </DropdownContent>
+                                                </DropdownWrapper>
                                             </Td>
                                             <Td>
                                                 <div style={{ display: 'flex' }}>
@@ -537,8 +615,9 @@ export default function PromotionPage() {
                                 )}
                             </tbody>
                         </Table>
-                    )}
-                </Card>
+                    </TableWrapper>
+                )}
+            </Card>
 
                 {isModalOpen && (
                     <ModalOverlay onClick={() => setIsModalOpen(false)}>

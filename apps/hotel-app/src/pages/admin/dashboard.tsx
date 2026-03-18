@@ -29,7 +29,8 @@ const Th = styled.th`
   text-align: left;
   padding: 16px;
   color: #34a853;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   border-bottom: 1px solid #e5e7eb;
 `;
 
@@ -37,6 +38,7 @@ const Td = styled.td`
   padding: 16px;
   border-bottom: 1px solid #f3f4f6;
   color: #4b5563;
+  font-size: 14px;
 `;
 
 const DeleteButton = styled.button`
