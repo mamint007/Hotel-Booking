@@ -263,7 +263,12 @@ export default function BookPage() {
               return (
                 <BookingCard key={booking.booking_id}>
                   <CardHeader>
-                    <BookingId># {booking.booking_id}</BookingId>
+                    <div>
+                      <BookingId># {booking.booking_id}</BookingId>
+                      <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
+                        จองเมื่อวันที่: {formatDate(booking.create_datetime)}
+                      </div>
+                    </div>
                     <StatusBadge status={booking.booking_status}>
                       {booking.booking_status === 'P' ? 'Pending' : 'Approved'}
                     </StatusBadge>

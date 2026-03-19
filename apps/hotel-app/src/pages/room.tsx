@@ -254,23 +254,56 @@ export default function RoomPage() {
   const [loading, setLoading] = useState(true);
 
   // Search state
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
+  // Initialize with today and tomorrow so the initial fetch has valid dates
+  const [checkIn, setCheckIn] = useState(() => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  });
+  
+  const [checkOut, setCheckOut] = useState(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split("T")[0];
+  });
+  
   const [guests, setGuests] = useState("2");
 
   useEffect(() => {
     if (router.isReady) {
       const { checkIn: qIn, checkOut: qOut, guests: qGuests } = router.query;
 
-      const today = new Date();
-      const tomorrow = new Date();
-      tomorrow.setDate(today.getDate() + 1);
+      if (qIn) setCheckIn(qIn as string);
+      if (qOut) setCheckOut(qOut as string);
+      if (qGuests) setGuests(qGuests as string);
 
-      setCheckIn((qIn as string) || today.toISOString().split("T")[0]);
-      setCheckOut((qOut as string) || tomorrow.toISOString().split("T")[0]);
-      setGuests((qGuests as string) || "2");
+      // Perform initial fetch with query parameters if they exist, otherwise use state defaults
+      const initialParams: any = {
+        minPrice: priceRange[0],
+        maxPrice: priceRange[1],
+        guests: (qGuests as string) || guests,
+        ...((qIn || checkIn) && { checkIn: (qIn as string) || checkIn }),
+        ...((qOut || checkOut) && { checkOut: (qOut as string) || checkOut })
+      };
+      
+      if (activeTab !== "ALL ROOM") {
+        initialParams.type = activeTab;
+      }
+
+      setLoading(true);
+      axios.get('/rooms', { params: initialParams }).then(res => {
+        if (res.data && res.data.res_code === '0000') {
+          const allRooms: Room[] = res.data.data;
+          const filteredRooms = allRooms.filter(room => {
+            const price = parseFloat(room.price_per_night);
+            const matchesGuests = room.max_guest >= parseInt((qGuests as string) || guests);
+            const matchesPrice = price >= priceRange[0] && price <= priceRange[1];
+            return matchesGuests && matchesPrice;
+          });
+          setRooms(filteredRooms);
+        }
+      }).catch(e => console.error(e)).finally(() => setLoading(false));
     }
-  }, [router.isReady, router.query]);
+  }, [router.isReady]); // Fetch on mount and router ready
 
   const fetchRoomTypes = async () => {
     try {
@@ -294,7 +327,9 @@ export default function RoomPage() {
       const params: any = {
         minPrice: priceRange[0],
         maxPrice: priceRange[1],
-        guests: guests // Pass guests to API if supported
+        guests: guests,
+        ...(checkIn && { checkIn }),
+        ...(checkOut && { checkOut })
       };
       if (activeTab !== "ALL ROOM") {
         params.type = activeTab;
@@ -303,7 +338,6 @@ export default function RoomPage() {
       const res = await axios.get('/rooms', { params });
       if (res.data && res.data.res_code === '0000') {
         const allRooms: Room[] = res.data.data;
-        // Client-side filtering for guests and price range
         const filteredRooms = allRooms.filter(room => {
           const price = parseFloat(room.price_per_night);
           const matchesGuests = room.max_guest >= parseInt(guests);
@@ -319,11 +353,12 @@ export default function RoomPage() {
     }
   };
 
+  // This handles subsequent category/price/guests changes but NOT automatic date search (user wants manual search button for dates)
   useEffect(() => {
     if (router.isReady) {
       fetchRooms();
     }
-  }, [activeTab, priceRange, guests, router.isReady]);
+  }, [activeTab, priceRange, guests]);
 
   const handleBook = (room: Room) => {
     const token = localStorage.getItem('token');

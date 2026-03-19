@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { RoomModel, RoomTypeModel, AmenityModel, AdditionalChargeModel, PromotionModel } from "@hotel/models";
+import { RoomModel, RoomTypeModel, AmenityModel, AdditionalChargeModel, PromotionModel, CheckInCheckOutModel, BookingDetailModel, BookingModel } from "@hotel/models";
 import { ServiceError } from "@hotel/helpers"
 import AdminMasterError from '../constants/errors/admin.error.json'
 import { Op, WhereOptions } from "sequelize";
 
 export const getRooms = () => async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { minPrice, maxPrice, type } = req.query;
+        const { minPrice, maxPrice, type, checkIn, checkOut } = req.query;
 
         // Base query
         const whereClause: WhereOptions<any> = {
@@ -18,6 +18,46 @@ export const getRooms = () => async (req: Request, res: Response, next: NextFunc
             whereClause.price_per_night = {};
             if (minPrice) whereClause.price_per_night[Op.gte] = Number(minPrice);
             if (maxPrice) whereClause.price_per_night[Op.lte] = Number(maxPrice);
+        }
+
+        // Filter out rooms that are booked on overlapping dates
+        if (checkIn && checkOut) {
+            const checkInDate = new Date(checkIn as string);
+            const checkOutDate = new Date(checkOut as string);
+
+            // Find room_ids that have overlapping bookings
+            const bookedDetails = await BookingDetailModel.findAll({
+                include: [
+                    {
+                        model: BookingModel,
+                        as: 'booking',
+                        required: true,
+                        where: {
+                            booking_status: { [Op.notIn]: ['C'] } // exclude cancelled
+                        },
+                        include: [
+                            {
+                                model: CheckInCheckOutModel,
+                                as: 'stay_details',
+                                required: true,
+                                where: {
+                                    [Op.and]: [
+                                        { checkin_date: { [Op.lt]: checkOutDate } },
+                                        { checkout_date: { [Op.gt]: checkInDate } }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                attributes: ['room_id']
+            });
+
+            const bookedRoomIds = bookedDetails.map((d: any) => d.room_id);
+
+            if (bookedRoomIds.length > 0) {
+                whereClause.room_id = { [Op.notIn]: bookedRoomIds };
+            }
         }
 
         const includeClause: any[] = [{
@@ -49,6 +89,7 @@ export const getRooms = () => async (req: Request, res: Response, next: NextFunc
         next(error);
     }
 }
+
 
 export const getAdditionalCharges = () => async (req: Request, res: Response, next: NextFunction) => {
     try {

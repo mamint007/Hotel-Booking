@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ServiceError } from "@hotel/helpers"
 import AdminMasterError from '../constants/errors/admin.error.json'
-import { EmployeeModel, RoleModel, RoomModel, RoomTypeModel, BookingModel, MemberModel, PaymentTypeModel, BookingDetailModel, CheckInCheckOutModel, PaymentModel, PromotionModel, AmenityModel, RoomTypeDetailModel } from "@hotel/models"
+import { sequelize, EmployeeModel, RoleModel, RoomModel, RoomTypeModel, BookingModel, MemberModel, PaymentTypeModel, BookingDetailModel, CheckInCheckOutModel, PaymentModel, PromotionModel, AmenityModel, RoomTypeDetailModel } from "@hotel/models"
 import jwt from 'jsonwebtoken'
 import path from 'path';
 import fs from 'fs';
@@ -769,26 +769,40 @@ export const updateBookingStatus = () => async (req: Request, res: Response, nex
     }
 }
 export const updatePaymentStatus = () => async (req: Request, res: Response, next: NextFunction) => {
+    const transaction = await sequelize.transaction();
     try {
         const { id } = req.params;
         const { payment_status } = req.body;
 
         if (!id || !payment_status) {
+            await transaction.rollback();
             return next(new ServiceError(AdminMasterError.ERR_PAYMENT_UPDATE_REQUIRED || 'Payment ID and payment_status are required'));
         }
 
-        const payment = await PaymentModel.findByPk(id);
+        const payment = await PaymentModel.findByPk(id, { transaction });
         if (!payment) {
+            await transaction.rollback();
             return next(new ServiceError(AdminMasterError.ERR_PAYMENT_NOT_FOUND || 'Payment not found'));
         }
 
         payment.payment_status = payment_status;
-        await payment.save();
+        await payment.save({ transaction });
 
+        // Synchronize booking status if paid/approved
+        if (payment_status === 'A') {
+            const booking = await BookingModel.findByPk(payment.booking_id, { transaction });
+            if (booking) {
+                booking.booking_status = 'A'; // Set booking to Approved
+                await booking.save({ transaction });
+            }
+        }
+
+        await transaction.commit();
         res.locals.payment = payment;
         next();
 
     } catch (error) {
+        await transaction.rollback();
         next(error);
     }
 }

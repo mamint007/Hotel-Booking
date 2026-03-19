@@ -251,7 +251,20 @@ export default function Payment() {
                                             <Td>{p.payment_id}</Td>
                                             <Td>{formatDate(p.payment_date)}</Td>
                                             <Td>{p.booking_id}</Td>
-                                            <Td>{p.slip_url}</Td>
+                                            <Td>
+                                                {p.slip_url ? (
+                                                    <a 
+                                                        href={`http://localhost:3001${p.slip_url}`} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer"
+                                                        style={{ color: '#34a853', fontWeight: 600, textDecoration: 'underline' }}
+                                                    >
+                                                        {p.slip_url}
+                                                    </a>
+                                                ) : (
+                                                    <span style={{ color: '#9ca3af' }}>No Slip</span>
+                                                )}
+                                            </Td>
                                             <Td>{formatDate(p.payment_due_time)}</Td>
                                             <Td>{p.employee_id || 'E001'}</Td>
                                             <Td>

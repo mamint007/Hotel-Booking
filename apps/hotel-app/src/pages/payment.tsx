@@ -473,16 +473,19 @@ export default function PaymentPage() {
   };
 
   const handleConfirmPayment = async () => {
+    if (!paymentSlip) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'กรุณาแนบสลิป',
+        text: 'โปรดอัปโหลดสลิปการโอนเงินก่อนทำการชำระเงิน',
+        confirmButtonColor: '#4CAF50'
+      });
+      return;
+    }
+
     setSubmitting(true);
     try {
-      let finalSlip = paymentSlip;
-
-      // Mockup slip if not uploaded
-      if (!finalSlip) {
-        console.log("Using mockup slip...");
-        const blob = new Blob(["mock-slip-content"], { type: "image/png" });
-        finalSlip = new File([blob], "mock-slip.png", { type: "image/png" });
-      }
+      const finalSlip = paymentSlip;
 
       const userStr = localStorage.getItem('user');
       const user = userStr ? JSON.parse(userStr) : null;

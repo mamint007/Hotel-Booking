@@ -109,11 +109,11 @@ export const createBooking = () => async (req: Request, res: Response, next: Nex
             const ext = path.extname(req.file.originalname);
             const filename = `${uniqueSuffix}${ext}`;
             const uploadDir = path.join(process.cwd(), 'public/uploads');
-            
+
             if (!fs.existsSync(uploadDir)) {
                 fs.mkdirSync(uploadDir, { recursive: true });
             }
-            
+
             fs.writeFileSync(path.join(uploadDir, filename), req.file.buffer);
             slip_url = `/uploads/${filename}`;
         }
@@ -179,8 +179,8 @@ export const getMyBookings = () => async (req: Request, res: Response, next: Nex
                     as: 'stay_details'
                 },
                 {
-                   model: PaymentTypeModel,
-                   as: 'payment_type'
+                    model: PaymentTypeModel,
+                    as: 'payment_type'
                 }
             ],
             order: [['create_datetime', 'DESC']]
