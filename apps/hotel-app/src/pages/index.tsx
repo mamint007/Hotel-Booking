@@ -7,6 +7,7 @@ import Navbar from "../components/Navbar";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import axios from "../helpers/axios";
 
 
 const geistSans = Geist({
@@ -485,32 +486,7 @@ const promotions = [
   },
 ];
 
-const reviews = [
-  {
-    name: 'Leena Puangmanee',
-    rating: 4,
-    text: 'The hotel was fantastic! The room was clean, spacious, and had everything we needed. The staff was incredibly friendly and helpful. The breakfast buffet was amazing with so many options. Would definitely recommend and come back again!',
-    date: 'Mar 31, 2026',
-  },
-  {
-    name: 'Warissara Prothumpha',
-    rating: 5,
-    text: 'Absolutely wonderful experience! The pool area was beautiful with a great view. Room service was quick and the food was delicious. The spa services were top-notch and very relaxing. Perfect place for a weekend getaway.',
-    date: 'Mar 29, 2026',
-  },
-  {
-    name: 'Somchai Jaidee',
-    rating: 5,
-    text: 'Best hotel experience I have ever had. The attention to detail was impressive. From the welcome drink to the turndown service, everything was perfect. Highly recommended for families and couples alike!',
-    date: 'Mar 25, 2026',
-  },
-  {
-    name: 'Natthaya Srisuwan',
-    rating: 4,
-    text: 'Great location and amazing facilities. The gym was well-equipped and the infinity pool was stunning, especially at sunset. The staff went above and beyond to make our anniversary special with a cake and room decoration.',
-    date: 'Mar 20, 2026',
-  },
-];
+// Dynamic reviews will be fetched from API
 
 export default function Home() {
   const router = useRouter();
@@ -518,8 +494,10 @@ export default function Home() {
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState("2");
   const [promoIndex, setPromoIndex] = useState(0);
+  const [revs, setRevs] = useState<any[]>([]);
 
   useEffect(() => {
+    fetchReviews();
     const today = new Date();
     const tomorrow = new Date();
     tomorrow.setDate(today.getDate() + 1);
@@ -527,6 +505,17 @@ export default function Home() {
     setCheckIn(today.toISOString().split("T")[0]);
     setCheckOut(tomorrow.toISOString().split("T")[0]);
   }, []);
+
+  const fetchReviews = async () => {
+    try {
+      const res = await axios.get('/rooms/reviews');
+      if (res.data && res.data.res_code === '0000') {
+        setRevs(res.data.data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch reviews", e);
+    }
+  };
 
   const handleSearch = () => {
     router.push({
@@ -742,28 +731,28 @@ export default function Home() {
           <Container>
             <SectionTitle>Our Customer Reviews</SectionTitle>
             <ReviewsGrid>
-              {reviews.map((review, idx) => (
+              {revs.map((review, idx) => (
                 <ReviewCard key={idx}>
                   <ReviewHeader>
                     <ReviewerInfo>
                       <ReviewerAvatar>
                         <User size={18} />
                       </ReviewerAvatar>
-                      <ReviewerName>{review.name}</ReviewerName>
+                      <ReviewerName>{review.member?.m_firstname} {review.member?.m_lastname}</ReviewerName>
                     </ReviewerInfo>
                     <StarRating>
                       {Array.from({ length: 5 }).map((_, i) => (
                         <Star
                           key={i}
                           size={16}
-                          fill={i < review.rating ? '#FBBF24' : 'none'}
-                          color={i < review.rating ? '#FBBF24' : '#D1D5DB'}
+                          fill={i < (review.review_detail?.rating || 0) ? '#4CAF50' : 'none'}
+                          color={i < (review.review_detail?.rating || 0) ? '#4CAF50' : '#D1D5DB'}
                         />
                       ))}
                     </StarRating>
                   </ReviewHeader>
-                  <ReviewText>{review.text}</ReviewText>
-                  <ReviewDate>{review.date}</ReviewDate>
+                  <ReviewText>{review.review_detail?.comment}</ReviewText>
+                  <ReviewDate>{new Date(review.review_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</ReviewDate>
                 </ReviewCard>
               ))}
             </ReviewsGrid>

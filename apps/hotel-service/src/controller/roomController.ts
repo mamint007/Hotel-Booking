@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { RoomModel, RoomTypeModel, AmenityModel, AdditionalChargeModel, PromotionModel, CheckInCheckOutModel, BookingDetailModel, BookingModel } from "@hotel/models";
+import { RoomModel, RoomTypeModel, AmenityModel, AdditionalChargeModel, PromotionModel, CheckInCheckOutModel, BookingDetailModel, BookingModel, ReviewModel, MemberModel, ReviewDetailModel } from "@hotel/models";
 import { ServiceError } from "@hotel/helpers"
 import AdminMasterError from '../constants/errors/admin.error.json'
 import { Op, WhereOptions } from "sequelize";
@@ -135,3 +135,24 @@ export const validateCoupon = () => async (req: Request, res: Response, next: Ne
     }
 }
 
+export const getReviews = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const reviews = await ReviewModel.findAll({
+            include: [{
+                model: MemberModel,
+                as: 'member',
+                attributes: ['m_firstname', 'm_lastname']
+            }, {
+                model: ReviewDetailModel,
+                as: 'review_detail',
+                attributes: ['rating', 'comment']
+            }],
+            order: [['review_date', 'DESC']],
+            limit: 10
+        });
+        res.locals.reviews = reviews;
+        next();
+    } catch (error) {
+        next(error);
+    }
+}

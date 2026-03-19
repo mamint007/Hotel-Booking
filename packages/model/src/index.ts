@@ -13,6 +13,8 @@ import { AmenityModel } from './models/Amenity'
 import { RoomTypeDetailModel } from './models/RoomTypeDetail'
 import { CheckInCheckOutModel } from './models/CheckInCheckOut'
 import { AdditionalChargeModel } from './models/AdditionalCharge'
+import { ReviewModel } from './models/Review'
+import { ReviewDetailModel } from './models/ReviewDetail'
 
 
 // Define Relationships
@@ -162,6 +164,42 @@ CheckInCheckOutModel.belongsTo(BookingModel, {
     as: 'booking'
 });
 
+BookingModel.hasOne(ReviewDetailModel, {
+    foreignKey: 'booking_id',
+    sourceKey: 'booking_id',
+    as: 'review_detail'
+});
+
+ReviewDetailModel.belongsTo(BookingModel, {
+    foreignKey: 'booking_id',
+    targetKey: 'booking_id',
+    as: 'booking'
+});
+
+MemberModel.hasMany(ReviewModel, {
+    foreignKey: 'member_id',
+    sourceKey: 'member_id',
+    as: 'reviews'
+});
+
+ReviewModel.belongsTo(MemberModel, {
+    foreignKey: 'member_id',
+    targetKey: 'member_id',
+    as: 'member'
+});
+
+ReviewModel.hasOne(ReviewDetailModel, {
+    foreignKey: 'review_id',
+    sourceKey: 'review_id',
+    as: 'review_detail'
+});
+
+ReviewDetailModel.belongsTo(ReviewModel, {
+    foreignKey: 'review_id',
+    targetKey: 'review_id',
+    as: 'review'
+});
+
 export * from './sequelize'
 export * from './models/Member'
 export * from './models/Role'
@@ -177,4 +215,6 @@ export * from './models/Amenity'
 export * from './models/RoomTypeDetail'
 export * from './models/CheckInCheckOut'
 export * from './models/AdditionalCharge'
+export * from './models/Review'
+export * from './models/ReviewDetail'
 
