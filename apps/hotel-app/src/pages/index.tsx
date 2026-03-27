@@ -471,20 +471,7 @@ const FooterBanner = styled.div`
   margin-top: 2rem;
 `;
 
-const promotions = [
-  {
-    text: 'Celebrate your **birthday month** with a **20% discount for members**',
-    coupon: 'โปรวันเกิด',
-  },
-  {
-    text: 'Stay 3 nights and get **1 night free** for all room types',
-    coupon: 'STAY3FREE',
-  },
-  {
-    text: 'Early bird booking! Get **15% off** when you book 30 days in advance',
-    coupon: 'EARLYBIRD15',
-  },
-];
+// Dynamic promotions will be fetched from API
 
 // Dynamic reviews will be fetched from API
 
@@ -494,10 +481,12 @@ export default function Home() {
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState("2");
   const [promoIndex, setPromoIndex] = useState(0);
+  const [promos, setPromos] = useState<any[]>([]);
   const [revs, setRevs] = useState<any[]>([]);
 
   useEffect(() => {
     fetchReviews();
+    fetchPromotions();
     const today = new Date();
     const tomorrow = new Date();
     tomorrow.setDate(today.getDate() + 1);
@@ -514,6 +503,17 @@ export default function Home() {
       }
     } catch (e) {
       console.error("Failed to fetch reviews", e);
+    }
+  };
+
+  const fetchPromotions = async () => {
+    try {
+      const res = await axios.get('/rooms/promotions');
+      if (res.data && res.data.res_code === '0000') {
+        setPromos(res.data.data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch promotions", e);
     }
   };
 
@@ -658,34 +658,36 @@ export default function Home() {
         </BookingBar>
 
         {/* Promotions Section */}
-        <PromotionsSection>
-          <Container>
-            <SectionTitle>Promotions</SectionTitle>
-            <PromotionCarousel>
-              <CarouselArrow
-                onClick={() => setPromoIndex((prev) => (prev - 1 + promotions.length) % promotions.length)}
-                aria-label="Previous promotion"
-              >
-                <ChevronLeft size={20} color="#9ca3af" />
-              </CarouselArrow>
-              <PromotionCard>
-                <PromotionText
-                  dangerouslySetInnerHTML={{
-                    __html: promotions[promoIndex].text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'),
-                  }}
-                />
-                <CouponLabel>use coupon name :</CouponLabel>
-                <CouponName>{promotions[promoIndex].coupon}</CouponName>
-              </PromotionCard>
-              <CarouselArrow
-                onClick={() => setPromoIndex((prev) => (prev + 1) % promotions.length)}
-                aria-label="Next promotion"
-              >
-                <ChevronRight size={20} color="#9ca3af" />
-              </CarouselArrow>
-            </PromotionCarousel>
-          </Container>
-        </PromotionsSection>
+        {promos.length > 0 && (
+          <PromotionsSection>
+            <Container>
+              <SectionTitle>Promotions</SectionTitle>
+              <PromotionCarousel>
+                <CarouselArrow
+                  onClick={() => setPromoIndex((prev) => (prev - 1 + promos.length) % promos.length)}
+                  aria-label="Previous promotion"
+                >
+                  <ChevronLeft size={20} color="#9ca3af" />
+                </CarouselArrow>
+                <PromotionCard>
+                  <PromotionText
+                    dangerouslySetInnerHTML={{
+                      __html: promos[promoIndex]?.promo_detail.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') || '',
+                    }}
+                  />
+                  <CouponLabel>use coupon name :</CouponLabel>
+                  <CouponName>{promos[promoIndex]?.promo_name}</CouponName>
+                </PromotionCard>
+                <CarouselArrow
+                  onClick={() => setPromoIndex((prev) => (prev + 1) % promos.length)}
+                  aria-label="Next promotion"
+                >
+                  <ChevronRight size={20} color="#9ca3af" />
+                </CarouselArrow>
+              </PromotionCarousel>
+            </Container>
+          </PromotionsSection>
+        )}
 
         <SectionDivider />
 

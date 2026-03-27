@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
-import { login, getAllEmployees, getAllRooms, getAllRoomTypes, getAllBookings, getAllPayments, getAllPromotions, createEmployee, updateEmployeeStatus, deleteUser, updateRoomStatus, createRoom, updateRoom, deleteRoom, createRoomType, updateRoomType, deleteRoomType, getMe, createPromotion, updatePromotion, deletePromotion, getAllAmenities, updateBookingStatus, updatePaymentStatus } from "../controller/adminController"
+import { login, getAllEmployees, getAllRooms, getAllRoomTypes, getAllBookings, getAllPayments, getAllPromotions, createEmployee, updateEmployeeStatus, deleteUser, updateRoomStatus, createRoom, updateRoom, deleteRoom, createRoomType, updateRoomType, deleteRoomType, getMe, createPromotion, updatePromotion, deletePromotion, getAllAmenities, updateBookingStatus, updatePaymentStatus, getBookingReport, getRoomOccupancyReport } from "../controller/adminController"
 import { getAllUsers } from "../controller/userController"
 
 import { verifyAdminToken } from '../middleware/authMiddleware';
@@ -390,6 +390,36 @@ router.get(
             res_code: '0000',
             res_desc: 'Get All Amenities successfully',
             data: res.locals.amenities
+        }
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.get(
+    '/report/bookings',
+    verifyAdminToken(),
+    getBookingReport(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Get Booking Report successfully',
+            data: res.locals.report
+        }
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.get(
+    '/report/occupancy',
+    verifyAdminToken(),
+    getRoomOccupancyReport(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Get Room Occupancy Report successfully',
+            data: res.locals.occupancyReport
         }
         res.json(res.locals.response)
         next()

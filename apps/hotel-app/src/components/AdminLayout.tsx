@@ -10,7 +10,8 @@ import {
     CreditCard,
     Flag,
     LogOut,
-    LayoutDashboard
+    LayoutDashboard,
+    FileText
 } from "lucide-react";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -132,7 +133,7 @@ interface AdminLayoutProps {
     title?: string;
 }
 
-const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeMenu = 'Manage User', title = 'Hotel Admin' }) => {
+const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeMenu = 'Report', title = 'Hotel Admin' }) => {
     const router = useRouter();
 
     const handleLogout = () => {
@@ -141,10 +142,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeMenu = 'Manag
     };
 
     const menuItems = [
-        { name: 'Manage User', icon: User, path: '/admin/dashboard' },
+        { name: 'Report', icon: FileText, path: '/admin/dashboard' },
+        { name: 'Manage User', icon: User, path: '/admin/user' },
         { name: 'Manage Employee', icon: Users, path: '/admin/employee' },
         { name: 'Manage Room', icon: Bed, path: '/admin/room' },
-        { name: 'Manage Room Type', icon: Settings, path: '/admin/room-type' }, // Settings icon as placeholder for complex icon
+        { name: 'Manage Room Type', icon: Settings, path: '/admin/room-type' },
         { name: 'Booking', icon: CalendarDays, path: '/admin/booking' },
         { name: 'Payment', icon: CreditCard, path: '/admin/payment' },
         { name: 'Promotion', icon: Flag, path: '/admin/promotion' },

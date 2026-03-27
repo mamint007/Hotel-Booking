@@ -156,3 +156,21 @@ export const getReviews = () => async (req: Request, res: Response, next: NextFu
         next(error);
     }
 }
+
+export const getPromotions = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const now = new Date();
+        const promotions = await PromotionModel.findAll({
+            where: {
+                is_active: 'A',
+                promo_start_date: { [Op.lte]: now },
+                promo_end_date: { [Op.gte]: now }
+            },
+            order: [['promo_start_date', 'DESC']]
+        });
+        res.locals.promotions = promotions;
+        next();
+    } catch (error) {
+        next(error);
+    }
+}

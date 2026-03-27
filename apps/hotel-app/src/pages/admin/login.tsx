@@ -297,7 +297,7 @@ export default function AdminLogin() {
                                         </FormGroup>
 
                                         <SignInButton type="submit">
-                                            Access Dashboard
+                                            Access Report
                                         </SignInButton>
 
                                     </form>

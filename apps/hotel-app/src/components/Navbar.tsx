@@ -1,6 +1,6 @@
 import styled from "styled-components";
 //import { Container, Row, Col } from "react-grid-system";
-import { Building2, User, ChevronDown, LayoutDashboard, LogOut } from "lucide-react";
+import { Building2, User, ChevronDown, LayoutDashboard, LogOut, FileText } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
@@ -282,8 +282,8 @@ export default function Navbar() {
                       <DropdownRole>{adminUser?.role?.role_name || adminUser?.Role?.role_name || 'Admin'}</DropdownRole>
                     </DropdownHeader>
                     <DropdownItem onClick={() => router.push('/admin/dashboard')}>
-                      <LayoutDashboard size={16} />
-                      Dashboard
+                      <FileText size={16} />
+                      Report
                     </DropdownItem>
                     <DropdownItem onClick={handleAdminLogout} style={{ color: '#ef4444' }}>
                       <LogOut size={16} />

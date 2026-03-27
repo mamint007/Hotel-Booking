@@ -806,3 +806,124 @@ export const updatePaymentStatus = () => async (req: Request, res: Response, nex
         next(error);
     }
 }
+
+export const getBookingReport = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { startDate, endDate } = req.query;
+
+        if (!startDate || !endDate) {
+            return next(new ServiceError(AdminMasterError.ERR_BOOKING_UPDATE_REQUIRED || 'startDate and endDate are required'));
+        }
+
+        const start = new Date(startDate as string);
+        const end = new Date(endDate as string);
+        // Set end date to end of day
+        end.setHours(23, 59, 59, 999);
+
+        const report = await sequelize.query(`
+            SELECT
+                rt.room_type_name,
+                COUNT(DISTINCT bd.booking_detail_id) AS booking_count,
+                ROUND(AVG(bd.price_at_booking), 2) AS avg_price_per_night,
+                SUM(bd.price_at_booking * bd.number_of_nights) AS total_revenue
+            FROM booking_detail bd
+            JOIN booking b ON bd.booking_id = b.booking_id
+            JOIN checkin_checkout cc ON b.booking_id = cc.booking_id
+            JOIN room r ON bd.room_id = r.room_id
+            JOIN room_type rt ON r.room_type_id = rt.room_type_id
+            WHERE b.booking_status != 'C'
+              AND cc.checkin_date >= :startDate
+              AND cc.checkin_date <= :endDate
+            GROUP BY rt.room_type_name
+            ORDER BY rt.room_type_name ASC
+        `, {
+            replacements: { startDate: start, endDate: end },
+            type: 'SELECT' as any
+        });
+
+        res.locals.report = report;
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const getRoomOccupancyReport = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { startDate, endDate } = req.query;
+
+        if (!startDate || !endDate) {
+            return next(new ServiceError(AdminMasterError.ERR_BOOKING_UPDATE_REQUIRED || 'startDate and endDate are required'));
+        }
+
+        // Get all room types with their total room count
+        const roomTypes = await sequelize.query(`
+            SELECT rt.room_type_name, COUNT(r.room_id) AS total_rooms
+            FROM room_type rt
+            LEFT JOIN room r ON rt.room_type_id = r.room_type_id AND r.room_status = 'A'
+            GROUP BY rt.room_type_id, rt.room_type_name
+            ORDER BY rt.room_type_name ASC
+        `, { type: 'SELECT' as any }) as any[];
+
+        // Get daily booked rooms per room type within the date range
+        const bookedData = await sequelize.query(`
+            SELECT
+                d.day::date AS report_date,
+                rt.room_type_name,
+                COUNT(DISTINCT bd.room_id) AS booked_rooms
+            FROM generate_series(:startDate::date, :endDate::date, '1 day'::interval) AS d(day)
+            CROSS JOIN room_type rt
+            LEFT JOIN room r ON r.room_type_id = rt.room_type_id AND r.room_status = 'A'
+            LEFT JOIN booking_detail bd ON bd.room_id = r.room_id
+            LEFT JOIN booking b ON bd.booking_id = b.booking_id AND b.booking_status != 'C'
+            LEFT JOIN checkin_checkout cc ON b.booking_id = cc.booking_id
+                AND cc.checkin_date <= d.day::date
+                AND cc.checkout_date > d.day::date
+            WHERE (cc.booking_id IS NOT NULL OR bd.booking_detail_id IS NULL)
+            GROUP BY d.day, rt.room_type_name
+            ORDER BY d.day ASC, rt.room_type_name ASC
+        `, {
+            replacements: { startDate: startDate as string, endDate: endDate as string },
+            type: 'SELECT' as any
+        }) as any[];
+
+        // Build a lookup for total rooms per type
+        const totalMap: Record<string, number> = {};
+        roomTypes.forEach((rt: any) => {
+            totalMap[rt.room_type_name] = parseInt(rt.total_rooms) || 0;
+        });
+
+        // Group booked data by date
+        const dateMap: Record<string, Record<string, number>> = {};
+        bookedData.forEach((row: any) => {
+            const dateKey = new Date(row.report_date).toISOString().split('T')[0];
+            if (!dateMap[dateKey]) dateMap[dateKey] = {};
+            dateMap[dateKey][row.room_type_name] = parseInt(row.booked_rooms) || 0;
+        });
+
+        // Build result rows
+        const roomTypeNames = roomTypes.map((rt: any) => rt.room_type_name);
+        const result: any[] = [];
+
+        const start = new Date(startDate as string);
+        const end = new Date(endDate as string);
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            const dateKey = d.toISOString().split('T')[0];
+            const row: any = { date: dateKey };
+            roomTypeNames.forEach((name: string) => {
+                const booked = dateMap[dateKey]?.[name] || 0;
+                const total = totalMap[name] || 0;
+                row[name] = `${booked}/${total}`;
+            });
+            result.push(row);
+        }
+
+        res.locals.occupancyReport = {
+            roomTypes: roomTypeNames,
+            data: result
+        };
+        next();
+    } catch (error) {
+        next(error);
+    }
+}

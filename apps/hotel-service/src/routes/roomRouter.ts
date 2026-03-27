@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
-import { getRooms, getAdditionalCharges, validateCoupon, getReviews } from "../controller/roomController";
+import { getRooms, getAdditionalCharges, validateCoupon, getReviews, getPromotions } from "../controller/roomController";
 import { getAllRoomTypes } from "../controller/adminController";
 
 const router = express.Router();
@@ -68,6 +68,20 @@ router.get(
             res_code: '0000',
             res_desc: 'Get Reviews successfully',
             data: res.locals.reviews
+        }
+        res.json(res.locals.response)
+        next()
+    }
+);
+
+router.get(
+    '/promotions',
+    getPromotions(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Get Promotions successfully',
+            data: res.locals.promotions
         }
         res.json(res.locals.response)
         next()
