@@ -269,7 +269,9 @@ export default function Navbar() {
                   onClick={() => setShowDropdown(!showDropdown)}
                   style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: '#555' }}
                 >
-                  <span style={{ fontSize: 13, fontWeight: 500 }}>Admin</span>
+                  <span style={{ fontSize: 13, fontWeight: 500 }}>
+                    {isAdmin ? adminUser?.emp_firstname || 'Admin' : 'Admin'}
+                  </span>
                   <ChevronDown size={14} />
                 </div>
 

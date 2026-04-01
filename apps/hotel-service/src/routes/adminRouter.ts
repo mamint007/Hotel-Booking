@@ -1,13 +1,13 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Request, Response, NextFunction, Router } from 'express';
 import { login, getAllEmployees, getAllRooms, getAllRoomTypes, getAllBookings, getAllPayments, getAllPromotions, createEmployee, updateEmployeeStatus, deleteUser, updateRoomStatus, createRoom, updateRoom, deleteRoom, createRoomType, updateRoomType, deleteRoomType, getMe, createPromotion, updatePromotion, deletePromotion, getAllAmenities, updateBookingStatus, updatePaymentStatus, getBookingReport, getRoomOccupancyReport } from "../controller/adminController"
 import { getAllUsers } from "../controller/userController"
 
-import { verifyAdminToken } from '../middleware/authMiddleware';
+import { verifyAdminToken, verifyOwnerToken } from '../middleware/authMiddleware';
 
 
 import { upload } from '../middleware/uploadMiddleware';
 
-const router = express.Router()
+const router = Router()
 
 
 
@@ -398,7 +398,7 @@ router.get(
 
 router.get(
     '/report/bookings',
-    verifyAdminToken(),
+    verifyOwnerToken(),
     getBookingReport(),
     (req: Request, res: Response, next: NextFunction) => {
         res.locals.response = {

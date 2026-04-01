@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import styled from "styled-components";
 import AdminAuthGuard from "../../components/AdminAuthGuard";
 import AdminLayout from "../../components/AdminLayout";
@@ -86,26 +87,27 @@ const ReportTitle = styled.h3`
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
+  margin-top: 10px;
+  background-color: white;
+  
+  th, td {
+    border: 1px solid black;
+    padding: 8px;
+    color: black;
+    font-size: 14px;
+    word-break: break-all;
+  }
 `;
 
 const Th = styled.th`
+  background-color: #f2f2f2;
+  font-weight: bold;
   text-align: center;
-  padding: 14px 16px;
-  color: #1f2937;
-  font-size: 14px;
-  font-weight: 700;
-  border-bottom: 2px solid #1f2937;
-  border-top: 2px solid #1f2937;
-  background-color: #f9fafb;
 `;
 
 const Td = styled.td<{ $bold?: boolean; $right?: boolean }>`
-  padding: 14px 16px;
-  border-bottom: 1px solid #e5e7eb;
-  color: #374151;
-  font-size: 14px;
   text-align: ${(p) => (p.$right ? 'right' : 'center')};
-  font-weight: ${(p) => (p.$bold ? '700' : '400')};
+  font-weight: ${(p) => (p.$bold ? 'bold' : 'normal')};
 `;
 
 const TotalRow = styled.tr`
@@ -126,6 +128,110 @@ const EmptyState = styled.div`
 
 const SectionSpacer = styled.div`
   height: 40px;
+`;
+
+const PDFButton = styled.button`
+  padding: 8px 24px;
+  background-color: #1f2937;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+  &:hover {
+    background-color: #374151;
+  }
+
+  @media print {
+    display: none;
+  }
+`;
+
+const PrintStyles = styled.div`
+  @media print {
+    @page {
+      size: A4;
+      margin: 20mm;
+    }
+
+    /* Hide ALL administrative UI components */
+    nav, aside, header, footer, button, .no-print, 
+    [class*="Sidebar"], [class*="Navbar"], [class*="TopHeader"],
+    .FilterRow, [class*="Card"]:first-of-type,
+    [class*="PageHeader"] {
+      display: none !important;
+    }
+
+    /* Reset global layout containers */
+    html, body, #__next, 
+    [class*="LayoutWrapper"], [class*="MainContent"], [class*="ContentBody"] {
+      display: block !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: white !important;
+      width: 100% !important;
+      height: auto !important;
+      min-height: auto !important;
+      position: static !important;
+      box-shadow: none !important;
+      border: none !important;
+    }
+
+    /* Style the report content */
+    #report-content {
+      display: block !important;
+      width: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: white !important;
+    }
+
+    /* Professional Table Styles for Print */
+    table {
+      width: 100% !important;
+      border-collapse: collapse !important;
+      margin-bottom: 20px !important;
+      border: 1px solid black !important;
+    }
+
+    th, td {
+      border: 1px solid black !important;
+      padding: 6px !important;
+      color: black !important;
+      background: white !important;
+      text-align: center !important;
+    }
+
+    th {
+      background-color: #f2f2f2 !important;
+      font-weight: bold !important;
+      -webkit-print-color-adjust: exact;
+    }
+
+    h2, h3, [class*="ReportTitle"] {
+      color: black !important;
+      text-align: left !important;
+      margin: 20px 0 10px 0 !important;
+      font-size: 16px !important;
+      font-weight: bold !important;
+      background: none !important;
+    }
+
+    /* Remove card borders in print */
+    [class*="Card"] {
+      border: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      box-shadow: none !important;
+      background: transparent !important;
+    }
+  }
 `;
 
 interface ReportRow {
@@ -181,7 +287,26 @@ export default function AdminReport() {
     const [endDate, setEndDate] = useState('');
     const [reportGenerated, setReportGenerated] = useState(false);
 
+    const router = useRouter();
+
     useEffect(() => {
+        // Check for owner role
+        const adminUserStr = localStorage.getItem('admin_user');
+        if (adminUserStr) {
+            try {
+                const adminUser = JSON.parse(adminUserStr);
+                if (adminUser.role?.role_name !== 'Owner') {
+                    // Redirect non-owners to booking page or another safe page
+                    router.push('/admin/booking');
+                    return;
+                }
+            } catch (error) {
+                console.error("Failed to parse admin_user", error);
+                router.push('/admin/login');
+                return;
+            }
+        }
+
         // Default to current month
         const now = new Date();
         const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -189,7 +314,7 @@ export default function AdminReport() {
 
         setStartDate(firstDay.toISOString().split('T')[0]);
         setEndDate(lastDay.toISOString().split('T')[0]);
-    }, []);
+    }, [router]);
 
     const fetchReport = async () => {
         if (!startDate || !endDate) return;
@@ -211,6 +336,77 @@ export default function AdminReport() {
             console.error("Failed to fetch report", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handlePrint = () => {
+        const content = document.getElementById('report-content-data')?.innerHTML;
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>รายงานสรุปข้อมูลการจอง</title>
+                        <style>
+                            @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap');
+                            body { 
+                                font-family: 'Sarabun', sans-serif; 
+                                padding: 40px; 
+                                background: white;
+                                color: black;
+                            }
+                            table { 
+                                width: 100%; 
+                                border-collapse: collapse; 
+                                margin-bottom: 30px; 
+                                border: 1px solid black;
+                            }
+                            th, td { 
+                                border: 1px solid black; 
+                                padding: 10px; 
+                                text-align: center; 
+                                font-size: 14px;
+                            }
+                            th { 
+                                background-color: #f2f2f2 !important; 
+                                -webkit-print-color-adjust: exact;
+                            }
+                            h2, h3 { 
+                                text-align: left; 
+                                margin: 20px 0 10px 0;
+                                font-size: 18px;
+                            }
+                            .report-title {
+                                font-weight: bold;
+                                font-size: 20px;
+                                text-align: center;
+                                margin-bottom: 30px;
+                            }
+                            /* Remove scrollbars and height limits for printing */
+                            div {
+                                max-height: none !important;
+                                overflow: visible !important;
+                            }
+                            @media print {
+                                body { padding: 0; }
+                                @page { margin: 2cm; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="report-title">รายงานสรุปข้อมูลโรงแรม</div>
+                        ${content}
+                        <script>
+                            window.document.close();
+                            window.focus();
+                            setTimeout(() => {
+                                window.print();
+                                window.close();
+                            }, 500);
+                        </script>
+                    </body>
+                </html>
+            `);
         }
     };
 
@@ -243,12 +439,18 @@ export default function AdminReport() {
                         <GenerateButton onClick={fetchReport} disabled={loading}>
                             {loading ? 'กำลังโหลด...' : 'สร้างรายงาน'}
                         </GenerateButton>
+                        {reportGenerated && (
+                            <PDFButton onClick={handlePrint}>
+                                ดาวน์โหลดเอกสาร PDF
+                            </PDFButton>
+                        )}
                     </FilterRow>
                 </Card>
 
-                {reportGenerated && (
-                    <>
-                        {/* Report 1: Booking Summary by Room Type */}
+                <div id="report-content-data">
+                    {reportGenerated && (
+                        <>
+                            {/* Report 1: Booking Summary by Room Type */}
                         <Card>
                             <ReportTitle>
                                 รายงานยอดการจองตามช่วงเวลา แยกตามประเภทห้องพัก ({formatThaiDate(startDate)} – {formatThaiDate(endDate)})
@@ -326,6 +528,7 @@ export default function AdminReport() {
                         </Card>
                     </>
                 )}
+                </div>
             </AdminLayout>
         </AdminAuthGuard>
     );

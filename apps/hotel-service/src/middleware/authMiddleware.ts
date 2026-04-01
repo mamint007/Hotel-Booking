@@ -22,8 +22,6 @@ export const verifyAdminToken = () => (req: Request, res: Response, next: NextFu
             return next(new ServiceError(AdminMasterError.ERR_ADMIN_LOGIN_REQUIRED))
         }
 
-        console.log("token: ", token)
-
         jwt.verify(token, process.env.JWT_SECRET || 'secret', (err: any, decoded: any) => {
             if (err) {
                 return next(new ServiceError(AdminMasterError.TOKEN_EXPIRED))
@@ -42,7 +40,34 @@ export const verifyAdminToken = () => (req: Request, res: Response, next: NextFu
     } catch (error) {
         next(error)
     }
+}
 
+export const verifyOwnerToken = () => (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const authHeader = req.headers['authorization']
+        const token = authHeader && authHeader.split(' ')[1] // Bearer TOKEN
+
+        if (!token) {
+            return next(new ServiceError(AdminMasterError.ERR_ADMIN_LOGIN_REQUIRED))
+        }
+
+        jwt.verify(token, process.env.JWT_SECRET || 'secret', (err: any, decoded: any) => {
+            if (err) {
+                return next(new ServiceError(AdminMasterError.TOKEN_EXPIRED))
+            }
+
+            // Strictly check for Owner role
+            if (decoded.role !== 'Owner') {
+                return next(new ServiceError(AdminMasterError.ERR_ADMIN_LOGIN_FAIL))
+            }
+
+            req.user = decoded
+            res.locals.user = decoded
+            next()
+        })
+    } catch (error) {
+        next(error)
+    }
 }
 
 export const verifyMemberToken = () => (req: Request, res: Response, next: NextFunction) => {

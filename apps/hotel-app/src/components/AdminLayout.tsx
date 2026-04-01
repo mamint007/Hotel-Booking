@@ -141,8 +141,24 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeMenu = 'Repor
         router.push('/admin/login');
     };
 
+    // Determine if the user is an owner
+    const [isOwner, setIsOwner] = React.useState(false);
+
+    React.useEffect(() => {
+        const adminUserStr = localStorage.getItem('admin_user');
+        if (adminUserStr) {
+            try {
+                const adminUser = JSON.parse(adminUserStr);
+                // The role is an object included from RoleModel
+                setIsOwner(adminUser.role?.role_name === 'Owner');
+            } catch (error) {
+                console.error("Failed to parse admin_user", error);
+            }
+        }
+    }, []);
+
     const menuItems = [
-        { name: 'Report', icon: FileText, path: '/admin/dashboard' },
+        { name: 'Report', icon: FileText, path: '/admin/dashboard', ownerOnly: true },
         { name: 'Manage User', icon: User, path: '/admin/user' },
         { name: 'Manage Employee', icon: Users, path: '/admin/employee' },
         { name: 'Manage Room', icon: Bed, path: '/admin/room' },
@@ -150,7 +166,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeMenu = 'Repor
         { name: 'Booking', icon: CalendarDays, path: '/admin/booking' },
         { name: 'Payment', icon: CreditCard, path: '/admin/payment' },
         { name: 'Promotion', icon: Flag, path: '/admin/promotion' },
-    ];
+    ].filter(item => !item.ownerOnly || isOwner);
 
     return (
         <LayoutWrapper>
