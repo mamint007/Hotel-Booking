@@ -56,12 +56,13 @@ const Td = styled.td`
 const StatusBadge = styled.button<{ status: string }>`
   background-color: ${props => {
         switch (props.status) {
+            case 'U': return '#ef4444'; // Unpaid (Red)
             case 'A': return '#10b981'; // Approved
             case 'P': return '#f59e0b'; // Pending
             case 'C': return '#ef4444'; // Cancel
             case 'I':
             case 'O': return '#6366f1'; // Check-In/Out (Blue/Indigo)
-            default: return '#f59e0b';
+            default: return '#6b7280';
         }
     }};
   color: white;
@@ -223,16 +224,18 @@ export default function Booking() {
 
     const getStatusLabel = (status: string) => {
         switch (status) {
+            case 'U': return 'Unpaid';
             case 'P': return 'Pending';
             case 'A': return 'Approved';
             case 'C': return 'Cancelled';
             case 'I': return 'Check-In';
             case 'O': return 'Check-Out';
-            default: return 'Pending';
+            default: return 'Unpaid';
         }
     };
 
     const statusOptions = [
+        { value: 'U', label: 'Unpaid', color: '#6b7280' },
         { value: 'P', label: 'Pending', color: '#f59e0b' },
         { value: 'A', label: 'Approved', color: '#10b981' },
         { value: 'C', label: 'Cancelled', color: '#ef4444' },

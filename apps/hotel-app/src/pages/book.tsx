@@ -51,14 +51,232 @@ const StatusBadge = styled.span<{ status?: string }>`
   font-size: 12px;
   font-weight: 600;
   background-color: ${props => {
-    if (props.status === 'P') return '#f59e0b';
-    if (props.status === 'A') return '#10b981';
-    if (props.status === 'C') return '#ef4444'; // Cancelled
-    if (props.status === 'I' || props.status === 'O') return '#6366f1'; // Check-In/Out
+    if (props.status === 'U') return '#ef4444'; // Unpaid (Red)
+    if (props.status === 'P') return '#f59e0b'; // Pending (Yellow)
+    if (props.status === 'A') return '#10b981'; // Approved (Green)
+    if (props.status === 'C') return '#ef4444'; // Cancelled (Red)
+    if (props.status === 'I' || props.status === 'O') return '#6366f1'; // Check-In/Out (Indigo)
     return '#10b981';
   }};
   color: white;
-  text-transform: capitalize;
+  display: inline-block;
+  white-space: nowrap;
+`;
+
+const PayNowButton = styled.button`
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-left: 8px;
+
+  &:hover {
+    background-color: #388E3C;
+  }
+`;
+
+const CancelButton = styled.button`
+  background-color: transparent;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: 8px;
+
+  &:hover {
+    background-color: #f9fafb;
+    border-color: #d1d5db;
+    color: #374151;
+  }
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  width: 100%;
+  max-width: 450px;
+  border-radius: 24px;
+  padding: 32px;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.3s ease-out;
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+`;
+
+const SuccessModalContent = styled(ModalContent)`
+  max-width: 380px;
+  text-align: center;
+  padding: 48px 32px;
+`;
+
+const ModalHeader = styled.h2`
+  text-align: center;
+  color: #4CAF50;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 24px;
+`;
+
+const BankInfoBox = styled.div`
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px 24px;
+  text-align: center;
+  margin-bottom: 24px;
+  background: #fafafa;
+
+  p {
+    font-size: 15px;
+    color: #374151;
+    margin: 4px 0;
+    line-height: 1.6;
+  }
+`;
+
+const CountdownBadge = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #6b7280;
+  font-size: 13px;
+  white-space: nowrap;
+`;
+
+const Divider = styled.div`
+  height: 1px;
+  background-color: #f3f4f6;
+  margin-bottom: 24px;
+`;
+
+const SlipLabel = styled.div`
+  font-weight: 700;
+  color: #4CAF50;
+  font-size: 18px;
+  margin-bottom: 4px;
+`;
+
+const SlipHint = styled.p`
+  color: #9ca3af;
+  font-size: 11px;
+  margin-bottom: 12px;
+`;
+
+const FileInputWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+`;
+
+const ChooseFileButton = styled.label`
+  background-color: #f3f4f6;
+  color: #6b7280;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid #e5e7eb;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: #e5e7eb;
+  }
+`;
+
+const FileName = styled.span`
+  font-size: 12px;
+  color: #9ca3af;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const HiddenInput = styled.input`
+  display: none;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #9ca3af;
+  cursor: pointer;
+  
+  &:hover {
+    color: #374151;
+  }
+`;
+
+const ConfirmPayButton = styled.button`
+  width: 100%;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+  
+  &:hover {
+    background-color: #388E3C;
+  }
+  
+  &:disabled {
+      background-color: #9ca3af;
+      cursor: not-allowed;
+  }
+`;
+
+const SuccessTitle = styled.h2`
+  color: #4CAF50;
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+`;
+
+const SuccessText = styled.p`
+  color: #6b7280;
+  font-size: 18px;
+  line-height: 1.4;
+  margin: 0;
+`;
+
+const SuccessDivider = styled.div`
+  height: 1px;
+  background-color: #f3f4f6;
+  margin: 16px 0;
 `;
 
 const ReviewLink = styled.a`
@@ -96,25 +314,6 @@ const ModalContainer = styled.div`
   max-width: 500px;
   position: relative;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-`;
-
-const CloseButton = styled.button`
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: none;
-  border: none;
-  color: #9ca3af;
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s;
-  
-  &:hover {
-    color: #4b5563;
-  }
 `;
 
 const ModalTitle = styled.h2`
@@ -383,7 +582,15 @@ export default function BookPage() {
   const router = useRouter();
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [paymentSlip, setPaymentSlip] = useState<File | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [countdown, setCountdown] = useState(0);
+  const [timerStarted, setTimerStarted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
   // Review Modal State
   const [showReview, setShowReview] = useState(false);
   const [rating, setRating] = useState(0);
@@ -407,6 +614,132 @@ export default function BookPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    if (!timerStarted) return;
+    
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timerStarted]);
+
+  const handlePayNow = (b: any) => {
+    setSelectedBooking(b);
+    
+    const payment = b.payments?.[0];
+    if (payment && payment.remaining_seconds !== undefined) {
+      setCountdown(payment.remaining_seconds);
+      setTimerStarted(true);
+    } else if (payment && (payment.payment_due_time || b.create_datetime)) {
+      // Robust fallback logic (legacy/safety)
+      let deadlineStr = payment.payment_due_time || b.create_datetime;
+      let dueTime: number;
+      if (!payment.payment_due_time) {
+        dueTime = new Date(b.create_datetime).getTime() + 24 * 60 * 60 * 1000;
+      } else {
+        let dStr = deadlineStr;
+        if (typeof dStr === 'string' && !dStr.endsWith('Z') && !dStr.includes('+')) {
+          dStr = dStr.replace(' ', 'T') + 'Z';
+        }
+        dueTime = new Date(dStr).getTime();
+        const createTime = new Date(b.create_datetime).getTime();
+        if (dueTime - createTime < 20 * 60 * 60 * 1000) {
+            dueTime = createTime + 24 * 60 * 60 * 1000;
+        }
+      }
+      const now = new Date().getTime();
+      setCountdown(Math.max(0, Math.floor((dueTime - now) / 1000)));
+      setTimerStarted(true);
+    }
+    setShowQRModal(true);
+  };
+
+  const handleConfirmPayment = async () => {
+    if (!paymentSlip || !selectedBooking) return;
+
+    setSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append('booking_id', selectedBooking.booking_id);
+      formData.append('payment_slip', paymentSlip);
+
+      const res = await axios.post('/bookings/submit-payment', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      if (res.data && res.data.res_code === '0000') {
+        setShowQRModal(false);
+        setShowSuccessModal(true);
+        setTimeout(() => {
+          setShowSuccessModal(false);
+          fetchBookings(); // Refresh list
+        }, 2000);
+      }
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Payment Failed',
+        text: 'Something went wrong.',
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCancelBooking = async (booking_id: string) => {
+    const result = await Swal.fire({
+      title: 'ยกเลิกการจอง?',
+      text: "คุณแน่ใจหรือไม่ว่าต้องการยกเลิกการจองนี้? การดำเนินการนี้ไม่สามารถย้อนกลับได้",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'ยืนยันการยกเลิก',
+      cancelButtonText: 'ยกเลิก'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const res = await axios.post('/bookings/cancel', { booking_id });
+        if (res.data && res.data.res_code === '0000') {
+          Swal.fire({
+            icon: 'success',
+            title: 'Cancelled!',
+            text: 'การจองของคุณถูกยกเลิกเรียบร้อยแล้ว',
+            showConfirmButton: false,
+            timer: 1500
+          });
+          setTimeout(() => {
+            router.push('/'); // Redirect to Home
+          }, 1500);
+          // fetchBookings(); // No need to refresh since we redirect
+        }
+      } catch (error) {
+        console.error('Cancel Error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'ไม่สามารถยกเลิกการจองได้ กรุณาลองใหม่อีกครั้ง'
+        });
+      }
+    }
+  };
+
+  const formatCountdown = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return `${h} hrs ${m} min ${s} sec`;
   };
 
   const formatDate = (dateStr: string) => {
@@ -463,13 +796,22 @@ export default function BookPage() {
                           setShowReview(true);
                         }}>Add Your Room Review</ReviewLink>
                       )}
-                      <StatusBadge status={booking.booking_status}>
-                        {booking.booking_status === 'P' ? 'Pending' : 
-                         booking.booking_status === 'A' ? 'Approved' : 
-                         booking.booking_status === 'C' ? 'Cancelled' : 
-                         booking.booking_status === 'I' ? 'Check-In' : 
-                         booking.booking_status === 'O' ? 'Check-Out' : 'Approved'}
-                      </StatusBadge>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <StatusBadge status={booking.booking_status}>
+                          {booking.booking_status === 'U' ? 'Unpaid' : 
+                           booking.booking_status === 'P' ? 'Pending' : 
+                           booking.booking_status === 'A' ? 'Approved' : 
+                           booking.booking_status === 'C' ? 'Cancelled' : 
+                           booking.booking_status === 'I' ? 'Check-In' : 
+                           booking.booking_status === 'O' ? 'Check-Out' : 'Approved'}
+                        </StatusBadge>
+                        {booking.booking_status === 'U' && (
+                          <>
+                            <CancelButton onClick={() => handleCancelBooking(booking.booking_id)}>Cancel</CancelButton>
+                            <PayNowButton onClick={() => handlePayNow(booking)}>Pay Now</PayNowButton>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </CardHeader>
 
@@ -508,6 +850,64 @@ export default function BookPage() {
             })
           )}
         </Wrapper>
+
+        {showQRModal && (
+          <ModalOverlay onClick={() => !submitting && setShowQRModal(false)}>
+            <ModalContent onClick={(e) => e.stopPropagation()}>
+              <CloseButton onClick={() => !submitting && setShowQRModal(false)}>×</CloseButton>
+              <ModalHeader>Payment</ModalHeader>
+
+              <BankInfoBox>
+                <p>ชื่อบัญชี : โรงแรมออนไลน์</p>
+                <p>เลขบัญชี : 123-456-7890</p>
+              </BankInfoBox>
+
+              <Divider />
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
+                <SlipLabel style={{ marginBottom: 0 }}>Slip</SlipLabel>
+                <CountdownBadge>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  {formatCountdown(countdown)}
+                </CountdownBadge>
+              </div>
+              <SlipHint>โปรดแนบสลิปการโอนเงิน</SlipHint>
+              <FileInputWrapper>
+                <ChooseFileButton htmlFor="slip-upload">Choose Files</ChooseFileButton>
+                <FileName>{paymentSlip ? paymentSlip.name : 'No file chosen'}</FileName>
+                <HiddenInput
+                  id="slip-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setPaymentSlip(e.target.files[0]);
+                    }
+                  }}
+                />
+              </FileInputWrapper>
+
+              <ConfirmPayButton onClick={handleConfirmPayment} disabled={submitting || !paymentSlip}>
+                {submitting ? 'Processing...' : 'ชำระเงิน'}
+              </ConfirmPayButton>
+            </ModalContent>
+          </ModalOverlay>
+        )}
+
+        {showSuccessModal && (
+          <ModalOverlay>
+            <SuccessModalContent>
+              <SuccessTitle>THANK YOU</SuccessTitle>
+              <SuccessDivider />
+              <SuccessText>
+                Payment verification<br />in progress
+              </SuccessText>
+            </SuccessModalContent>
+          </ModalOverlay>
+        )}
       </Container>
       
       {showReview && (

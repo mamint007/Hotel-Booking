@@ -2,6 +2,7 @@ import './helpers/dotenv.helper'
 import app from './app'
 import winston from './helpers/winston'
 import databaseConnect from './helpers/sequelize.helper'
+import { initCronJobs } from './helpers/cron.helper'
 
 
 const PORT = Number(process.env.PORT) || 3001
@@ -37,6 +38,7 @@ async function init(): Promise<void> {
     if (connectDatabase) {
         const server = app().listen(PORT, () => {
             winston.info(`Hotel Service listening at: http://localhost:${PORT}`)
+            initCronJobs()
         })
 
         function gracefulShutdown() {

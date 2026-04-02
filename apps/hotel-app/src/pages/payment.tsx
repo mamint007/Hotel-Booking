@@ -349,25 +349,77 @@ const CloseButton = styled.button`
 
 export default function PaymentPage() {
   const router = useRouter();
-  const { roomId, checkIn, checkOut, guests, paymentType, discountAmount, selectedCharges } = router.query;
-  const roomIdStr = Array.isArray(roomId) ? roomId[0] : roomId;
-  const checkInStr = Array.isArray(checkIn) ? checkIn[0] : checkIn;
-  const checkOutStr = Array.isArray(checkOut) ? checkOut[0] : checkOut;
-  const guestsStr = Array.isArray(guests) ? guests[0] : guests;
-  const discountStr = Array.isArray(discountAmount) ? discountAmount[0] : (discountAmount || '0');
-  const selectedChargesStr = Array.isArray(selectedCharges) ? selectedCharges[0] : selectedCharges;
+  const { bookingId } = router.query;
+  const bookingIdStr = Array.isArray(bookingId) ? bookingId[0] : bookingId;
 
+  const [booking, setBooking] = useState<any>(null);
+  const [roomIdStr, setRoomIdStr] = useState('');
+  const [checkInStr, setCheckInStr] = useState('');
+  const [checkOutStr, setCheckOutStr] = useState('');
+  const [nights, setNights] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [price, setPrice] = useState(0);
+  const [paymentType, setPaymentType] = useState('');
+  const [discountAmount, setDiscountAmount] = useState(0);
   const [additionalCharges, setAdditionalCharges] = useState<any[]>([]);
 
   useEffect(() => {
-    if (selectedChargesStr) {
-      try {
-        setAdditionalCharges(JSON.parse(selectedChargesStr));
-      } catch (e) {
-        console.error("Failed to parse selectedCharges", e);
-      }
+    if (router.isReady && bookingIdStr) {
+      fetchBooking(bookingIdStr);
     }
-  }, [selectedChargesStr]);
+  }, [router.isReady, bookingIdStr]);
+
+  const fetchBooking = async (id: string) => {
+    try {
+      const res = await axios.get(`/bookings/${id}`);
+      if (res.data && res.data.res_code === '0000') {
+        const b = res.data.data;
+        setBooking(b);
+        const detail = b.booking_details?.[0];
+        setRoom(detail?.room);
+        setRoomIdStr(detail?.room_id);
+        setCheckInStr(b.stay_details?.checkin_date);
+        setCheckOutStr(b.stay_details?.checkout_date);
+        setNights(detail?.number_of_nights || 1);
+        const roomPrice = parseFloat(detail?.room?.price_per_night || '0');
+        setPrice(roomPrice);
+        setTotal(detail?.price_at_booking || 0);
+        // NEW: Use remaining_seconds from server to avoid timezone shift issues
+        const payment = b.payments?.[0];
+        if (payment && payment.remaining_seconds !== undefined) {
+          setCountdown(payment.remaining_seconds);
+          setTimerStarted(true);
+        } else if (payment && (payment.payment_due_time || b.create_datetime)) {
+          // Robust fallback logic (legacy/safety)
+          let deadlineStr = payment.payment_due_time || b.create_datetime;
+          let dueTime: number;
+          if (!payment.payment_due_time) {
+            dueTime = new Date(b.create_datetime).getTime() + 24 * 60 * 60 * 1000;
+          } else {
+            let dStr = deadlineStr;
+            if (typeof dStr === 'string' && !dStr.endsWith('Z') && !dStr.includes('+')) {
+              dStr = dStr.replace(' ', 'T') + 'Z';
+            }
+            dueTime = new Date(dStr).getTime();
+            const createTime = new Date(b.create_datetime).getTime();
+            if (dueTime - createTime < 20 * 60 * 60 * 1000) {
+                dueTime = createTime + 24 * 60 * 60 * 1000;
+            }
+          }
+          const now = new Date().getTime();
+          setCountdown(Math.max(0, Math.floor((dueTime - now) / 1000)));
+          setTimerStarted(true);
+        }
+
+        setPaymentType(b.payment_type_id === 'P02' ? 'PTH' : 'PAY');
+        setAdditionalCharges(JSON.parse(b.additional_charges || '[]'));
+      }
+    } catch (e) {
+      console.error("Failed to fetch booking", e);
+    } finally {
+      setLoading(false);
+    }
+  };
   const [room, setRoom] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -416,18 +468,7 @@ export default function PaymentPage() {
   }, [router.isReady, roomIdStr]);
 
   const fetchRoom = async (id: string) => {
-    try {
-      // Reuse the mock/filter logic or API
-      const res = await axios.get('/rooms');
-      if (res.data && res.data.res_code === '0000') {
-        const found = res.data.data.find((r: any) => r.room_id === id);
-        setRoom(found);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
+    // This is now handled by fetchBooking
   };
 
   const getImageUrl = (path?: string) => {
@@ -443,24 +484,8 @@ export default function PaymentPage() {
   if (loading) return <Container><div style={{ textAlign: 'center' }}>Loading...</div></Container>;
   if (!room) return <Container><div style={{ textAlign: 'center' }}>Room not found or Invalid Booking Details</div></Container>;
 
-  // Calculation
-  const start = checkInStr ? new Date(checkInStr) : new Date();
-  const end = checkOutStr ? new Date(checkOutStr) : new Date(new Date().setDate(new Date().getDate() + 1));
-
-  let nights = 0;
-  if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
-    const diffTime = end.getTime() - start.getTime();
-    nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  }
-  if (nights < 1) nights = 1;
-
-  const price = parseFloat(room.price_per_night);
-  const chargesTotal = additionalCharges.reduce((acc, charge) => {
-    const isPerNight = charge.charge_unit.toLowerCase().includes('คืน') || charge.charge_unit.toLowerCase().includes('night');
-    const amount = parseFloat(charge.charge_amount);
-    return acc + (isPerNight ? amount * nights : amount);
-  }, 0);
-  const total = price * nights + chargesTotal - parseFloat(discountStr);
+  // Calculations are handled in fetchBooking or can be derived
+  const discountStr = discountAmount.toString();
 
   const handlePayment = () => {
     setShowQRModal(true);
@@ -492,22 +517,12 @@ export default function PaymentPage() {
       const memberId = user?.member_id || '';
 
       const formData = new FormData();
-      formData.append('room_id', room.room_id);
-      formData.append('check_in_date', checkInStr || '');
-      formData.append('check_out_date', checkOutStr || '');
-      formData.append('number_of_nights', nights.toString());
-      formData.append('total_price', total.toString());
-      formData.append('number_of_guests', (guestsStr || '1'));
-      formData.append('payment_type', (paymentType as string) || 'PAY');
-      formData.append('additional_charges', JSON.stringify(additionalCharges));
+      if (bookingIdStr) {
+        formData.append('booking_id', bookingIdStr);
+      }
       formData.append('payment_slip', finalSlip);
-      formData.append('member_id', memberId);
-      // Using direct payload for now as per previous handlePayment, but with slip
-      // If the backend expects FormData, this is correct. 
-      // If it expects JSON, we might need a separate upload or Base64.
-      // Based on typical patterns, FormData is used for file uploads.
 
-      const res = await axios.post('/bookings', formData, {
+      const res = await axios.post('/bookings/submit-payment', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

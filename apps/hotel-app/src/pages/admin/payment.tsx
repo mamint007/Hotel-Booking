@@ -59,6 +59,7 @@ const StatusBadge = styled.button<{ status: string }>`
             case 'A': return '#10b981'; // Approved
             case 'P': return '#f59e0b'; // Pending
             case 'U': return '#ef4444'; // Unpaid
+            case 'C': return '#ef4444'; // Cancelled (Red)
             default: return '#f59e0b';
         }
     }};
@@ -156,6 +157,7 @@ export default function Payment() {
         { label: 'Approved', value: 'A', color: '#10b981' },
         { label: 'Pending', value: 'P', color: '#f59e0b' },
         { label: 'Unpaid', value: 'U', color: '#ef4444' },
+        { label: 'Cancelled', value: 'C', color: '#ef4444' },
     ];
 
     const fetchPayments = async () => {

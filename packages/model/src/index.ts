@@ -15,6 +15,7 @@ import { CheckInCheckOutModel } from './models/CheckInCheckOut'
 import { AdditionalChargeModel } from './models/AdditionalCharge'
 import { ReviewModel } from './models/Review'
 import { ReviewDetailModel } from './models/ReviewDetail'
+import { CancelModel } from './models/Cancel'
 
 
 // Define Relationships
@@ -200,6 +201,18 @@ ReviewDetailModel.belongsTo(ReviewModel, {
     as: 'review'
 });
 
+BookingModel.hasOne(CancelModel, {
+    foreignKey: 'booking_id',
+    sourceKey: 'booking_id',
+    as: 'cancel_record'
+});
+
+CancelModel.belongsTo(BookingModel, {
+    foreignKey: 'booking_id',
+    targetKey: 'booking_id',
+    as: 'booking'
+});
+
 export * from './sequelize'
 export * from './models/Member'
 export * from './models/Role'
@@ -217,4 +230,5 @@ export * from './models/CheckInCheckOut'
 export * from './models/AdditionalCharge'
 export * from './models/Review'
 export * from './models/ReviewDetail'
+export * from './models/Cancel'
 

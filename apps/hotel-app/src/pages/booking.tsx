@@ -313,6 +313,7 @@ export default function BookingPage() {
   const [couponCode, setCouponCode] = useState('');
   const [appliedPromo, setAppliedPromo] = useState<any>(null);
   const [applying, setApplying] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (router.isReady) {
@@ -641,20 +642,55 @@ export default function BookingPage() {
                 </PriceRow>
 
 
-                <NextButton onClick={() => {
-                  router.push({
-                    pathname: '/payment',
-                    query: {
-                      roomId,
-                      checkIn: checkInDate,
-                      checkOut: checkOutDate,
-                      paymentType,
-                      selectedCharges: JSON.stringify(selectedCharges),
-                      promoId: appliedPromo?.promo_id,
-                      discountAmount: appliedPromo ? parseFloat(appliedPromo.discount_value) : 0
+                <NextButton 
+                  disabled={submitting}
+                  onClick={async () => {
+                    setSubmitting(true);
+                    try {
+                      const userStr = localStorage.getItem('user');
+                      const user = userStr ? JSON.parse(userStr) : null;
+                      const memberId = user?.member_id || '';
+
+                      const res = await axios.post('/bookings', {
+                        room_id: roomId,
+                        check_in_date: checkInDate,
+                        check_out_date: checkOutDate,
+                        number_of_nights: nights.toString(),
+                        total_price: (total + selectedCharges.reduce((acc, charge) => {
+                          const isPerNight = charge.charge_unit.toLowerCase().includes('คืน') || charge.charge_unit.toLowerCase().includes('night');
+                          const amount = parseFloat(charge.charge_amount);
+                          return acc + (isPerNight ? amount * nights : amount);
+                        }, 0) - (appliedPromo ? parseFloat(appliedPromo.discount_value) : 0)).toString(),
+                        number_of_guests: (room.max_guest || '1').toString(),
+                        payment_type: paymentType,
+                        additional_charges: JSON.stringify(selectedCharges),
+                        member_id: memberId,
+                        promo_id: appliedPromo?.promo_id || null
+                      });
+
+                      if (res.data && res.data.res_code === '0000') {
+                        router.push({
+                          pathname: '/payment',
+                          query: {
+                            bookingId: res.data.data.booking_id
+                          }
+                        });
+                      }
+                    } catch (error: any) {
+                      console.error("Booking failed:", error);
+                      const Swal = require('sweetalert2');
+                      Swal.fire({
+                        icon: 'error',
+                        title: 'Booking Failed',
+                        text: error?.response?.data?.res_desc || 'Something went wrong.',
+                      });
+                    } finally {
+                      setSubmitting(false);
                     }
-                  });
-                }}>NEXT</NextButton>
+                  }}
+                >
+                  {submitting ? 'PROCESSING...' : 'NEXT'}
+                </NextButton>
               </Section>
             </RightColumn>
           </ContentGrid>

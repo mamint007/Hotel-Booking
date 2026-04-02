@@ -11,6 +11,7 @@
     "dependencies": {
         "@hotel/helpers": "*",
         "@hotel/models": "*",
+        "@types/node-cron": "^3.0.11",
         "body-parser": "^2.2.1",
         "cors": "^2.8.5",
         "dotenv": "^16.3.1",
@@ -19,6 +20,7 @@
         "moment": "^2.30.1",
         "multer": "^2.0.2",
         "nanoid": "^3.3.4",
+        "node-cron": "^4.2.1",
         "uuid": "^9.0.1",
         "winston": "^3.19.0"
     },

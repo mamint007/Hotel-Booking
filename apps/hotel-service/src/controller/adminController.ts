@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ServiceError } from "@hotel/helpers"
 import AdminMasterError from '../constants/errors/admin.error.json'
-import { sequelize, EmployeeModel, RoleModel, RoomModel, RoomTypeModel, BookingModel, MemberModel, PaymentTypeModel, BookingDetailModel, CheckInCheckOutModel, PaymentModel, PromotionModel, AmenityModel, RoomTypeDetailModel } from "@hotel/models"
+import { sequelize, EmployeeModel, RoleModel, RoomModel, RoomTypeModel, BookingModel, MemberModel, PaymentTypeModel, BookingDetailModel, CheckInCheckOutModel, PaymentModel, PromotionModel, AmenityModel, RoomTypeDetailModel, CancelModel } from "@hotel/models"
 import jwt from 'jsonwebtoken'
 import path from 'path';
 import fs from 'fs';
@@ -794,6 +794,33 @@ export const updatePaymentStatus = () => async (req: Request, res: Response, nex
             if (booking) {
                 booking.booking_status = 'A'; // Set booking to Approved
                 await booking.save({ transaction });
+            }
+        }
+
+        // Handle cancellation by Admin/Staff
+        if (payment_status === 'C') {
+            const booking = await BookingModel.findByPk(payment.booking_id, { transaction });
+            if (booking && booking.booking_status !== 'C') {
+                booking.booking_status = 'C'; // Set booking to Cancelled
+                await booking.save({ transaction });
+
+                // Generate Cancel ID
+                const lastCancel = await CancelModel.findOne({ order: [['cancel_id', 'DESC']], transaction });
+                let nextCancelId = '0000001';
+                if (lastCancel) {
+                    const lastIdNum = parseInt(lastCancel.cancel_id);
+                    if (!isNaN(lastIdNum)) {
+                        nextCancelId = (lastIdNum + 1).toString().padStart(7, '0');
+                    }
+                }
+
+                // Record in Cancel table
+                await CancelModel.create({
+                    cancel_id: nextCancelId,
+                    cancel_date: new Date(),
+                    cancel_type: 'E', // Employee/Staff
+                    booking_id: payment.booking_id
+                }, { transaction });
             }
         }
 

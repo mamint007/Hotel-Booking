@@ -215,7 +215,7 @@ export default function AdminLogin() {
 
                 swalInstance.fire({
                     icon: 'success',
-                    title: 'Welcome Back, Admin',
+                    title: 'Welcome Back',
                     text: 'Redirecting to dashboard...',
                     timer: 1500,
                     showConfirmButton: false,
