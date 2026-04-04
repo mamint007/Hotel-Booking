@@ -1,4 +1,5 @@
 import './helpers/dotenv.helper'
+process.env.TZ = 'Asia/Bangkok'
 import app from './app'
 import winston from './helpers/winston'
 import databaseConnect from './helpers/sequelize.helper'

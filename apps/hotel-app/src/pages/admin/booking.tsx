@@ -211,15 +211,11 @@ export default function Booking() {
 
     const formatDate = (dateString: string) => {
         if (!dateString) return '-';
-        return new Date(dateString).toLocaleString('en-GB', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false
-        }).replace(',', '');
+        // Backend now sends dates already in Bangkok timezone
+        // Just format it nicely: 'YYYY-MM-DDTHH:mm:ss' -> 'DD/MM/YYYY HH:mm:ss'
+        const d = new Date(dateString);
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
     };
 
     const getStatusLabel = (status: string) => {

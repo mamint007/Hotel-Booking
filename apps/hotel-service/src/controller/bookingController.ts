@@ -124,8 +124,8 @@ export const createBooking = () => async (req: Request, res: Response, next: Nex
             payment_date: new Date(),
             payment_status: req.file ? 'P' : 'U', // P if slip uploaded, U for Unpaid
             slip_url: slip_url,
-            // Explicitly set 24 hours from now using immutable timestamp
-            payment_due_time: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            // Temporarily set 1 minute from now for testing (original: 24 hours)
+            payment_due_time: new Date(Date.now() + 1 * 60 * 1000),
             booking_id: nextBookingId,
             employee_id: null
         }, { transaction });

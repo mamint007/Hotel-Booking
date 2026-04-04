@@ -165,7 +165,20 @@ export const getAllBookings = () => async (req: Request, res: Response, next: Ne
             order: [['booking_id', 'DESC']]
         });
 
-        res.locals.bookings = bookings;
+        // Convert to plain objects and format dates to Thailand timezone
+        const plainBookings = bookings.map(b => {
+            const plain = b.get({ plain: true }) as any;
+            if (plain.create_datetime) {
+                plain.create_datetime = new Date(plain.create_datetime).toLocaleString('sv-SE', {
+                    timeZone: 'Asia/Bangkok',
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                }).replace(' ', 'T');
+            }
+            return plain;
+        });
+
+        res.locals.bookings = plainBookings;
         next();
     } catch (error) {
         next(error);
@@ -176,10 +189,37 @@ export const getAllBookings = () => async (req: Request, res: Response, next: Ne
 export const getAllPayments = () => async (req: Request, res: Response, next: NextFunction) => {
     try {
         const payments = await PaymentModel.findAll({
+            include: [
+                {
+                    model: BookingModel,
+                    as: 'booking',
+                    attributes: ['booking_status']
+                }
+            ],
             order: [['payment_id', 'DESC']]
         });
 
-        res.locals.payments = payments;
+        // Convert to plain objects and format dates to Thailand timezone
+        const plainPayments = payments.map(p => {
+            const plain = p.get({ plain: true }) as any;
+            if (plain.payment_date) {
+                plain.payment_date = new Date(plain.payment_date).toLocaleString('sv-SE', {
+                    timeZone: 'Asia/Bangkok',
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                }).replace(' ', 'T');
+            }
+            if (plain.payment_due_time) {
+                plain.payment_due_time = new Date(plain.payment_due_time).toLocaleString('sv-SE', {
+                    timeZone: 'Asia/Bangkok',
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                }).replace(' ', 'T');
+            }
+            return plain;
+        });
+
+        res.locals.payments = plainPayments;
         next();
     } catch (error) {
         next(error);

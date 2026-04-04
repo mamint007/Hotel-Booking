@@ -59,7 +59,8 @@ const StatusBadge = styled.button<{ status: string }>`
             case 'A': return '#10b981'; // Approved
             case 'P': return '#f59e0b'; // Pending
             case 'U': return '#ef4444'; // Unpaid
-            case 'C': return '#ef4444'; // Cancelled (Red)
+            case 'C': 
+            case 'F': return '#ef4444'; // Cancelled / Failed (Red)
             default: return '#f59e0b';
         }
     }};
@@ -144,8 +145,11 @@ interface Payment {
     booking_id: string;
     slip_url: string;
     payment_due_time: string;
-    employee_id: string; // Or expand object if needed
+    employee_id: string;
     payment_status: string;
+    booking?: {
+        booking_status: string;
+    };
 }
 
 export default function Payment() {
@@ -207,15 +211,10 @@ export default function Payment() {
 
     const formatDate = (dateString: string) => {
         if (!dateString) return '-';
-        return new Date(dateString).toLocaleString('en-GB', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false
-        }).replace(',', '');
+        // Backend now sends dates already in Bangkok timezone
+        const d = new Date(dateString);
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
     };
 
     const mapStatus = (status: string) => {
@@ -275,9 +274,14 @@ export default function Payment() {
                                                         status={p.payment_status}
                                                         onClick={() => setOpenDropdownId(openDropdownId === p.payment_id ? null : p.payment_id)}
                                                     >
-                                                        {statusOptions.find(opt => opt.value === p.payment_status)?.label || 'Pending'}
+                                                        {statusOptions.find(opt => opt.value === p.payment_status)?.label || (p.payment_status === 'F' ? 'Cancelled' : 'Pending')}
                                                         <ChevronDown size={14} />
                                                     </StatusBadge>
+                                                    {p.booking && p.booking.booking_status !== p.payment_status && (
+                                                        <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '4px' }}>
+                                                            Booking: {statusOptions.find(opt => opt.value === p.booking?.booking_status)?.label || p.booking.booking_status}
+                                                        </div>
+                                                    )}
                                                     <DropdownContent show={openDropdownId === p.payment_id}>
                                                         {statusOptions.map(opt => (
                                                             <DropdownItem

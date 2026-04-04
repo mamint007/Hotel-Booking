@@ -12,6 +12,7 @@ export const sequelize = new Sequelize(
         port: Number(process.env.DB_PORT),
         dialect: process.env.DB_DIALECT as Dialect,
         logging: false,
+        timezone: '+07:00',
     }
 )
 
