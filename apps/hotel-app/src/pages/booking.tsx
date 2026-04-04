@@ -431,6 +431,16 @@ export default function BookingPage() {
     return new Date(dateStr).toLocaleDateString('en-US', { weekday: 'long' });
   };
 
+  const chargesTotal = selectedCharges.reduce((acc, charge) => {
+    const isPerNight = charge.charge_unit.toLowerCase().includes('คืน') || charge.charge_unit.toLowerCase().includes('night');
+    const amount = parseFloat(charge.charge_amount);
+    return acc + (isPerNight ? amount * nights : amount);
+  }, 0);
+  
+  const discountAmount = appliedPromo ? parseFloat(appliedPromo.discount_value) : 0;
+  const baseTotal = total + chargesTotal - discountAmount;
+  const finalToPay = paymentType === 'PTH' ? baseTotal / 2 : baseTotal;
+
   return (
     <UserAuthGuard>
       <Navbar />
@@ -633,12 +643,8 @@ export default function BookingPage() {
                   </PriceRow>
                 )}
                 <PriceRow total>
-                  <span>Total</span>
-                  <span>THB {(total + selectedCharges.reduce((acc, charge) => {
-                    const isPerNight = charge.charge_unit.toLowerCase().includes('คืน') || charge.charge_unit.toLowerCase().includes('night');
-                    const amount = parseFloat(charge.charge_amount);
-                    return acc + (isPerNight ? amount * nights : amount);
-                  }, 0) - (appliedPromo ? parseFloat(appliedPromo.discount_value) : 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                  <span>Total {paymentType === 'PTH' ? '(50% Deposit)' : ''}</span>
+                  <span>THB {finalToPay.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </PriceRow>
 
 
@@ -656,11 +662,7 @@ export default function BookingPage() {
                         check_in_date: checkInDate,
                         check_out_date: checkOutDate,
                         number_of_nights: nights.toString(),
-                        total_price: (total + selectedCharges.reduce((acc, charge) => {
-                          const isPerNight = charge.charge_unit.toLowerCase().includes('คืน') || charge.charge_unit.toLowerCase().includes('night');
-                          const amount = parseFloat(charge.charge_amount);
-                          return acc + (isPerNight ? amount * nights : amount);
-                        }, 0) - (appliedPromo ? parseFloat(appliedPromo.discount_value) : 0)).toString(),
+                        total_price: finalToPay.toString(),
                         number_of_guests: (room.max_guest || '1').toString(),
                         payment_type: paymentType,
                         additional_charges: JSON.stringify(selectedCharges),

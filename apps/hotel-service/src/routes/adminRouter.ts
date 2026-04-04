@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction, Router } from 'express';
-import { login, getAllEmployees, getAllRooms, getAllRoomTypes, getAllBookings, getAllPayments, getAllPromotions, createEmployee, updateEmployeeStatus, deleteUser, updateRoomStatus, createRoom, updateRoom, deleteRoom, createRoomType, updateRoomType, deleteRoomType, getMe, createPromotion, updatePromotion, deletePromotion, getAllAmenities, updateBookingStatus, updatePaymentStatus, getBookingReport, getRoomOccupancyReport } from "../controller/adminController"
+import { login, getAllEmployees, getAllRooms, getAllRoomTypes, getAllBookings, getAllPayments, getAllPromotions, createEmployee, updateEmployeeStatus, deleteUser, updateRoomStatus, createRoom, updateRoom, deleteRoom, createRoomType, updateRoomType, deleteRoomType, getMe, createPromotion, updatePromotion, deletePromotion, getAllAmenities, updateBookingStatus, updatePaymentStatus, getBookingReport, getRoomOccupancyReport, getStayCharges, addBookingCharge, removeBookingCharge } from "../controller/adminController"
 import { getAllUsers } from "../controller/userController"
 
 import { verifyAdminToken, verifyOwnerToken } from '../middleware/authMiddleware';
@@ -421,6 +421,36 @@ router.get(
             res_desc: 'Get Room Occupancy Report successfully',
             data: res.locals.occupancyReport
         }
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.get(
+    '/stays/:stay_id/charges',
+    verifyAdminToken(),
+    getStayCharges(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.post(
+    '/stays/:stay_id/charges',
+    verifyAdminToken(),
+    addBookingCharge(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.delete(
+    '/stays/:stay_id/charges/:charge_id',
+    verifyAdminToken(),
+    removeBookingCharge(),
+    (req: Request, res: Response, next: NextFunction) => {
         res.json(res.locals.response)
         next()
     }

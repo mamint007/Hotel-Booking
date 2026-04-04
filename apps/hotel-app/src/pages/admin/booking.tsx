@@ -158,12 +158,87 @@ interface Booking {
             room_number: string;
         };
     }[];
+    stay_details?: {
+        stay_id: string;
+        checkin_date: string;
+        checkout_date: string;
+    };
 }
+
+// Modal Styles
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #6b7280;
+`;
+
+const ChargeItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const ChargeButton = styled.button<{ $added?: boolean }>`
+  background-color: ${p => p.$added ? '#ef4444' : '#10b981'};
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  &:hover {
+    opacity: 0.9;
+  }
+`;
 
 export default function Booking() {
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+
+    // Additional Charges State
+    const [showChargesModal, setShowChargesModal] = useState(false);
+    const [selectedStayId, setSelectedStayId] = useState<string | null>(null);
+    const [allCharges, setAllCharges] = useState<any[]>([]);
+    const [stayCharges, setStayCharges] = useState<string[]>([]);
+    const [initialStayCharges, setInitialStayCharges] = useState<string[]>([]);
+    const [loadingCharges, setLoadingCharges] = useState(false);
+    const [savingCharges, setSavingCharges] = useState(false);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
 
     const fetchBookings = async () => {
         try {
@@ -181,6 +256,57 @@ export default function Booking() {
     useEffect(() => {
         fetchBookings();
     }, []);
+
+    const handleOpenCharges = async (stay_id: string | undefined) => {
+        if (!stay_id) {
+            Swal.fire({ icon: 'warning', title: 'No Stay ID', text: 'This booking has no stay details yet.' });
+            return;
+        }
+        setSelectedStayId(stay_id);
+        setShowChargesModal(true);
+        setLoadingCharges(true);
+        try {
+            const res = await axios.get(`/admin/stays/${stay_id}/charges`);
+            if (res.data && res.data.res_code === '0000') {
+                setAllCharges(res.data.data.all_charges);
+                const addedIds = res.data.data.added_charges.map((ac: any) => ac.charge_id);
+                setStayCharges(addedIds);
+                setInitialStayCharges(addedIds);
+            }
+        } catch (error) {
+            console.error("Failed to fetch charges", error);
+        } finally {
+            setLoadingCharges(false);
+        }
+    };
+
+    const handleSaveCharges = async () => {
+        if (!selectedStayId) return;
+        setSavingCharges(true);
+        try {
+            const toAdd = stayCharges.filter(id => !initialStayCharges.includes(id));
+            const toRemove = initialStayCharges.filter(id => !stayCharges.includes(id));
+
+            for (const id of toAdd) {
+                await axios.post(`/admin/stays/${selectedStayId}/charges`, { charge_id: id });
+            }
+            for (const id of toRemove) {
+                await axios.delete(`/admin/stays/${selectedStayId}/charges/${id}`);
+            }
+
+            setInitialStayCharges(stayCharges);
+            Swal.fire({ icon: 'success', title: 'Saved', text: 'Charges saved successfully', timer: 1500, showConfirmButton: false });
+        } catch (error) {
+            console.error("Failed to save charges", error);
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to save charges' });
+        } finally {
+            setSavingCharges(false);
+        }
+    };
+
+    const handlePayCharges = () => {
+        setShowPaymentModal(true);
+    };
 
     const handleStatusUpdate = async (id: string, newStatus: string) => {
         try {
@@ -297,6 +423,7 @@ export default function Booking() {
                                         <Th>Price</Th>
                                         <Th>Payment Type</Th>
                                         <Th>Is Review</Th>
+                                        <Th>Charges</Th>
                                         <Th>Booking Status</Th>
                                     </tr>
                                 </thead>
@@ -312,6 +439,24 @@ export default function Booking() {
                                                 <Td>{getPrice(b)}</Td>
                                                 <Td>{b.payment_type?.payment_type_name || '-'}</Td>
                                                 <Td>{mapIsReview(b.is_review)}</Td>
+                                                <Td>
+                                                    <button 
+                                                        onClick={() => {
+                                                            if (b.booking_status !== 'I') {
+                                                                Swal.fire({
+                                                                    icon: 'warning',
+                                                                    title: 'Not Available',
+                                                                    text: 'สามารถจัดการค่าใช้จ่ายเพิ่มเติมได้เฉพาะรายการที่ทำการ Check-In แล้วเท่านั้น'
+                                                                });
+                                                                return;
+                                                            }
+                                                            handleOpenCharges(b.stay_details?.stay_id);
+                                                        }}
+                                                        style={{ background: '#f3f4f6', border: '1px solid #d1d5db', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}
+                                                    >
+                                                        Manage
+                                                    </button>
+                                                </Td>
                                                 <Td>
                                                     <DropdownWrapper>
                                                         <StatusBadge
@@ -348,6 +493,105 @@ export default function Booking() {
                         </TableWrapper>
                     )}
                 </Card>
+
+                {showChargesModal && (
+                    <ModalOverlay onClick={() => setShowChargesModal(false)}>
+                        <ModalContent onClick={e => e.stopPropagation()}>
+                            <CloseButton onClick={() => setShowChargesModal(false)}>&times;</CloseButton>
+                            <h3 style={{ marginBottom: '20px', color: '#1f2937', fontWeight: 600 }}>Manage Additional Charges</h3>
+                            {loadingCharges ? (
+                                <p>Loading...</p>
+                            ) : allCharges.length > 0 ? (
+                                <>
+                                    <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', marginBottom: '20px' }}>
+                                        {allCharges.map(charge => {
+                                            const isChecked = stayCharges.includes(charge.charge_id);
+                                            return (
+                                                <ChargeItem key={charge.charge_id}>
+                                                    <div>
+                                                        <div style={{ fontWeight: 500, color: '#374151', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked={isChecked}
+                                                                onChange={(e) => {
+                                                                    if (e.target.checked) setStayCharges(prev => [...prev, charge.charge_id]);
+                                                                    else setStayCharges(prev => prev.filter(id => id !== charge.charge_id));
+                                                                }}
+                                                                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                                                            />
+                                                            {charge.charge_name}
+                                                        </div>
+                                                        <div style={{ fontSize: '12px', color: '#6b7280', marginLeft: '24px' }}>
+                                                            {parseFloat(charge.charge_amount).toLocaleString()} THB
+                                                        </div>
+                                                    </div>
+                                                </ChargeItem>
+                                            );
+                                        })}
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ fontWeight: 600, color: '#374151', fontSize: '15px' }}>
+                                            Total: {allCharges.filter(c => stayCharges.includes(c.charge_id)).reduce((sum, c) => sum + parseFloat(c.charge_amount), 0).toLocaleString()} THB
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '12px' }}>
+                                            <button 
+                                                onClick={handlePayCharges}
+                                                style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #d1d5db', background: 'white', fontWeight: 600, color: '#374151', cursor: 'pointer' }}
+                                            >
+                                                Pay
+                                            </button>
+                                            <button 
+                                                onClick={handleSaveCharges}
+                                                disabled={savingCharges}
+                                                style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', background: '#34a853', fontWeight: 600, color: 'white', cursor: savingCharges ? 'not-allowed' : 'pointer', opacity: savingCharges ? 0.7 : 1 }}
+                                            >
+                                                {savingCharges ? 'Saving...' : 'Save'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <p>No additional charges available.</p>
+                            )}
+                        </ModalContent>
+                    </ModalOverlay>
+                )}
+
+                {showPaymentModal && (() => {
+                    const selectedChargesList = allCharges.filter(c => stayCharges.includes(c.charge_id));
+                    const totalSelectedSum = selectedChargesList.reduce((sum, c) => sum + parseFloat(c.charge_amount), 0);
+
+                    return (
+                        <ModalOverlay onClick={() => setShowPaymentModal(false)}>
+                            <ModalContent onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', textAlign: 'center', padding: '30px' }}>
+                                <CloseButton onClick={() => setShowPaymentModal(false)}>&times;</CloseButton>
+                                <h2 style={{ color: '#4CAF50', marginBottom: '24px', fontWeight: 700 }}>Payment</h2>
+                                
+                                <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '20px', borderRadius: '12px', textAlign: 'left', marginBottom: '20px' }}>
+                                    <p style={{ margin: '0 0 10px 0', color: '#4b5563', fontSize: '15px' }}>ชื่อบัญชี : โรงแรมออนไลน์</p>
+                                    <p style={{ margin: 0, color: '#4b5563', fontSize: '15px' }}>เลขบัญชี : 123-456-7890</p>
+                                </div>
+
+                                {selectedChargesList.length > 0 && (
+                                    <div style={{ textAlign: 'left', marginBottom: '0px', padding: '16px', background: '#f0fdf4', borderRadius: '12px', border: '1px solid #bbf7d0' }}>
+                                        <h4 style={{ margin: '0 0 12px 0', color: '#166534', fontSize: '15px' }}>รายการที่ต้องชำระ:</h4>
+                                        <ul style={{ margin: 0, paddingLeft: '20px', color: '#15803d', fontSize: '14px', marginBottom: '12px' }}>
+                                            {selectedChargesList.map(c => (
+                                                <li key={c.charge_id} style={{ marginBottom: '4px' }}>
+                                                    {c.charge_name} <span style={{ float: 'right' }}>{parseFloat(c.charge_amount).toLocaleString()} THB</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                        <div style={{ borderTop: '1px dashed #86efac', paddingTop: '12px', fontWeight: 700, color: '#166534', display: 'flex', justifyContent: 'space-between' }}>
+                                            <span>ยอดรวมทั้งหมด</span>
+                                            <span>{totalSelectedSum.toLocaleString()} THB</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </ModalContent>
+                        </ModalOverlay>
+                    );
+                })()}
             </AdminLayout>
         </AdminAuthGuard>
     );

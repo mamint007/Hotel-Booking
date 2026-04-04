@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ServiceError } from "@hotel/helpers"
 import AdminMasterError from '../constants/errors/admin.error.json'
-import { sequelize, EmployeeModel, RoleModel, RoomModel, RoomTypeModel, BookingModel, MemberModel, PaymentTypeModel, BookingDetailModel, CheckInCheckOutModel, PaymentModel, PromotionModel, AmenityModel, RoomTypeDetailModel, CancelModel } from "@hotel/models"
+import { sequelize, EmployeeModel, RoleModel, RoomModel, RoomTypeModel, BookingModel, MemberModel, PaymentTypeModel, BookingDetailModel, CheckInCheckOutModel, PaymentModel, PromotionModel, AmenityModel, RoomTypeDetailModel, CancelModel, AdditionalChargeModel, BookingAdditionalChargeModel } from "@hotel/models"
 import jwt from 'jsonwebtoken'
 import path from 'path';
 import fs from 'fs';
@@ -150,7 +150,7 @@ export const getAllBookings = () => async (req: Request, res: Response, next: Ne
                 {
                     model: CheckInCheckOutModel,
                     as: 'stay_details',
-                    attributes: ['checkin_date', 'checkout_date']
+                    attributes: ['stay_id', 'checkin_date', 'checkout_date']
                 },
                 {
                     model: BookingDetailModel,
@@ -989,6 +989,89 @@ export const getRoomOccupancyReport = () => async (req: Request, res: Response, 
             roomTypes: roomTypeNames,
             data: result
         };
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
+// ─── Booking Additional Charges ───────────────────────────────────────────────
+
+export const getStayCharges = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { stay_id } = req.params;
+
+        // Get all available charges
+        const allCharges = await AdditionalChargeModel.findAll();
+
+        // Get charges already added to this stay
+        const added = await BookingAdditionalChargeModel.findAll({
+            where: { stay_id },
+            include: [{ model: AdditionalChargeModel, as: 'charge' }]
+        });
+
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Get stay charges successfully',
+            data: {
+                all_charges: allCharges,
+                added_charges: added
+            }
+        };
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const addBookingCharge = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { stay_id } = req.params;
+        const { charge_id } = req.body;
+
+        if (!stay_id || !charge_id) {
+            return res.status(400).json({ res_code: '0400', res_desc: 'stay_id and charge_id are required' });
+        }
+
+        // Check stay exists
+        const stay = await CheckInCheckOutModel.findByPk(stay_id);
+        if (!stay) {
+            return res.status(404).json({ res_code: '0404', res_desc: 'Stay record not found' });
+        }
+
+        // Check charge exists
+        const charge = await AdditionalChargeModel.findByPk(charge_id);
+        if (!charge) {
+            return res.status(404).json({ res_code: '0404', res_desc: 'Charge not found' });
+        }
+
+        // Check if already added
+        const existing = await BookingAdditionalChargeModel.findOne({ where: { stay_id, charge_id } });
+        if (existing) {
+            return res.status(400).json({ res_code: '0400', res_desc: 'Charge already added to this stay' });
+        }
+
+        await BookingAdditionalChargeModel.create({ stay_id, charge_id });
+
+        res.locals.response = { res_code: '0000', res_desc: 'Charge added successfully' };
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const removeBookingCharge = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { stay_id, charge_id } = req.params;
+
+        const record = await BookingAdditionalChargeModel.findOne({ where: { stay_id, charge_id } });
+        if (!record) {
+            return res.status(404).json({ res_code: '0404', res_desc: 'Charge record not found' });
+        }
+
+        await record.destroy();
+
+        res.locals.response = { res_code: '0000', res_desc: 'Charge removed successfully' };
         next();
     } catch (error) {
         next(error);

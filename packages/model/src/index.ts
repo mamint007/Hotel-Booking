@@ -16,6 +16,7 @@ import { AdditionalChargeModel } from './models/AdditionalCharge'
 import { ReviewModel } from './models/Review'
 import { ReviewDetailModel } from './models/ReviewDetail'
 import { CancelModel } from './models/Cancel'
+import { BookingAdditionalChargeModel } from './models/BookingAdditionalCharge'
 
 
 // Define Relationships
@@ -213,6 +214,30 @@ CancelModel.belongsTo(BookingModel, {
     as: 'booking'
 });
 
+AdditionalChargeModel.hasMany(BookingAdditionalChargeModel, {
+    foreignKey: 'charge_id',
+    sourceKey: 'charge_id',
+    as: 'booking_additional_charges'
+});
+
+BookingAdditionalChargeModel.belongsTo(AdditionalChargeModel, {
+    foreignKey: 'charge_id',
+    targetKey: 'charge_id',
+    as: 'charge'
+});
+
+CheckInCheckOutModel.hasMany(BookingAdditionalChargeModel, {
+    foreignKey: 'stay_id',
+    sourceKey: 'stay_id',
+    as: 'additional_charges'
+});
+
+BookingAdditionalChargeModel.belongsTo(CheckInCheckOutModel, {
+    foreignKey: 'stay_id',
+    targetKey: 'stay_id',
+    as: 'stay'
+});
+
 export * from './sequelize'
 export * from './models/Member'
 export * from './models/Role'
@@ -231,4 +256,5 @@ export * from './models/AdditionalCharge'
 export * from './models/Review'
 export * from './models/ReviewDetail'
 export * from './models/Cancel'
+export * from './models/BookingAdditionalCharge'
 
