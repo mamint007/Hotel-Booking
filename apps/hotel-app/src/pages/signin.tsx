@@ -8,6 +8,7 @@ import { useState } from "react";
 import axios from "../helpers/axios";
 import { useRouter } from "next/router";
 import swalInstance from 'sweetalert2'
+import { Eye, EyeOff } from "lucide-react";
 
 
 const Content = styled.div`
@@ -158,6 +159,30 @@ const Input = styled.input`
   }
 `;
 
+const PasswordWrapper = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
+const IconButton = styled.button`
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  
+  &:hover {
+    color: #4CAF50;
+  }
+`;
+
 const ForgotPasswordLink = styled.a`
   display: block;
   text-align: left;
@@ -216,6 +241,7 @@ const ErrorText = styled.span`
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -311,12 +337,21 @@ export default function SignIn() {
 
                     <FormGroup>
                       <Label>Password</Label>
-                      <Input
-                        type="password"
-                        placeholder="Enter your Password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                      />
+                      <PasswordWrapper>
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Enter your Password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                        />
+                        <IconButton 
+                          type="button" 
+                          onClick={() => setShowPassword(!showPassword)}
+                          tabIndex={-1}
+                        >
+                          {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+                        </IconButton>
+                      </PasswordWrapper>
                       {error && <ErrorText>{error}</ErrorText>}
                     </FormGroup>
 

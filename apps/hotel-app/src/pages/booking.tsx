@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import axios from "../helpers/axios";
 import { Calendar, Bed, Users, Wifi, Car, CreditCard, CheckCircle } from "lucide-react";
 import UserAuthGuard from "../components/UserAuthGuard";
+import Swal from 'sweetalert2';
 
 const Container = styled.div`
   min-height: 100vh;
@@ -376,7 +377,7 @@ export default function BookingPage() {
       });
       if (res.data && res.data.res_code === '0000') {
         setAppliedPromo(res.data.data);
-        const Toast = require('sweetalert2').mixin({
+        const Toast = Swal.mixin({
           toast: true,
           position: 'top-end',
           showConfirmButton: false,
@@ -389,12 +390,22 @@ export default function BookingPage() {
         });
       } else {
         setAppliedPromo(null);
-        const Swal = require('sweetalert2');
-        Swal.fire({
-          icon: 'error',
-          title: 'Oops...',
-          text: res.data?.res_desc || 'Invalid coupon code',
-        });
+        
+        // Show specific alert for quota exceeded
+        if (res.data?.res_code === '1432') {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Limit Reached',
+              text: res.data?.res_desc || 'You have already used this promotion.',
+              confirmButtonColor: '#4CAF50'
+            });
+        } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Oops...',
+              text: res.data?.res_desc || 'Invalid coupon code',
+            });
+        }
       }
     } catch (e) {
       console.error(e);

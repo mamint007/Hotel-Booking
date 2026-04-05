@@ -4,6 +4,7 @@ import { Container, ScreenClassProvider } from "react-grid-system";
 import Navbar from "../../components/Navbar"; // Adjusted path
 import { useState } from "react";
 import axios from "../../helpers/axios"; // Adjusted path
+import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/router";
 import swalInstance from 'sweetalert2'
 
@@ -149,6 +150,30 @@ const Input = styled.input`
   }
 `;
 
+const PasswordWrapper = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
+const IconButton = styled.button`
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  
+  &:hover {
+    color: #4CAF50;
+  }
+`;
+
 const SignInButton = styled.button`
   width: 100%;
   padding: 14px;
@@ -187,6 +212,7 @@ const ErrorText = styled.div`
 export default function AdminLogin() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
@@ -287,12 +313,21 @@ export default function AdminLogin() {
 
                                         <FormGroup>
                                             <Label>Password</Label>
-                                            <Input
-                                                type="password"
-                                                placeholder="••••••••"
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                            />
+                                            <PasswordWrapper>
+                                                <Input
+                                                    type={showPassword ? "text" : "password"}
+                                                    placeholder="••••••••"
+                                                    value={password}
+                                                    onChange={(e) => setPassword(e.target.value)}
+                                                />
+                                                <IconButton 
+                                                    type="button" 
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    tabIndex={-1}
+                                                >
+                                                    {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+                                                </IconButton>
+                                            </PasswordWrapper>
                                             {error && <ErrorText>{error}</ErrorText>}
                                         </FormGroup>
 

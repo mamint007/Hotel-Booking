@@ -254,5 +254,13 @@
             "en": "Payment not found.",
             "th": "ไม่พบข้อมูลการชำระเงิน"
         }
+    },
+    "ERR_PROMOTION_USER_QUOTA_EXCEEDED": {
+        "statusCode": 400,
+        "resCode": "1432",
+        "resDesc": {
+            "en": "You have already reached the maximum usage limit for this promotion.",
+            "th": "คุณใช้สิทธิ์โปรโมชั่นนี้ครบตามจำนวนที่กำหนดแล้ว"
+        }
     }
 }

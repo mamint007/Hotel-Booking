@@ -150,7 +150,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeMenu = 'Repor
             try {
                 const adminUser = JSON.parse(adminUserStr);
                 // The role is an object included from RoleModel
-                setIsOwner(adminUser.role?.role_name === 'Owner');
+                setIsOwner(adminUser.role?.role_name === 'Owner' || adminUser.role_id === 'R01');
             } catch (error) {
                 console.error("Failed to parse admin_user", error);
             }

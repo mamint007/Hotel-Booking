@@ -283,10 +283,12 @@ export default function Navbar() {
                       {/* Accessing role from included model, structure might be User.role.role_name or User.Role.role_name depending on sequelize alias */}
                       <DropdownRole>{adminUser?.role?.role_name || adminUser?.Role?.role_name || 'Admin'}</DropdownRole>
                     </DropdownHeader>
-                    <DropdownItem onClick={() => router.push('/admin/dashboard')}>
-                      <FileText size={16} />
-                      Report
-                    </DropdownItem>
+                    {(adminUser?.role?.role_name === 'Owner' || adminUser?.Role?.role_name === 'Owner' || adminUser?.role_id === 'R01') && (
+                      <DropdownItem onClick={() => router.push('/admin/dashboard')}>
+                        <FileText size={16} />
+                        Report
+                      </DropdownItem>
+                    )}
                     <DropdownItem onClick={handleAdminLogout} style={{ color: '#ef4444' }}>
                       <LogOut size={16} />
                       Log Out

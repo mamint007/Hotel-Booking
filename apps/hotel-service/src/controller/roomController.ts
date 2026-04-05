@@ -104,6 +104,7 @@ export const getAdditionalCharges = () => async (req: Request, res: Response, ne
 export const validateCoupon = () => async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { couponCode } = req.body;
+        const memberId = req.user?.id || req.user?.member_id;
 
         if (!couponCode) {
             return next(new ServiceError(AdminMasterError.ERR_COUPON_CODE_REQUIRED));
@@ -123,8 +124,19 @@ export const validateCoupon = () => async (req: Request, res: Response, next: Ne
             return next(new ServiceError(AdminMasterError.ERR_COUPON_INVALID_OR_EXPIRED));
         }
 
-        if (promo.usage_per_user <= 0) {
-            return next(new ServiceError(AdminMasterError.ERR_PROMOTION_QUOTA_EXCEEDED));
+        // Check if user has exceeded their individual usage limit
+        if (memberId) {
+            const usageCount = await BookingModel.count({
+                where: {
+                    member_id: memberId,
+                    promo_id: promo.promo_id,
+                    booking_status: { [Op.ne]: 'C' } // Exclude cancelled bookings
+                }
+            });
+
+            if (usageCount >= promo.usage_per_user) {
+                return next(new ServiceError(AdminMasterError.ERR_PROMOTION_USER_QUOTA_EXCEEDED || AdminMasterError.ERR_PROMOTION_QUOTA_EXCEEDED));
+            }
         }
 
         res.locals.promo = promo;

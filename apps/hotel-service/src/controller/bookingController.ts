@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
+import { Op } from 'sequelize';
 import { ServiceError } from "@hotel/helpers"
-import { sequelize, BookingModel, BookingDetailModel, PaymentModel, RoomModel, RoomTypeModel, PaymentTypeModel, CheckInCheckOutModel, CancelModel } from "@hotel/models"
+import { sequelize, BookingModel, BookingDetailModel, PaymentModel, RoomModel, RoomTypeModel, PaymentTypeModel, CheckInCheckOutModel, CancelModel, PromotionModel } from "@hotel/models"
 import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
@@ -18,7 +19,8 @@ export const createBooking = () => async (req: Request, res: Response, next: Nex
             number_of_guests,
             payment_type,
             additional_charges,
-            member_id
+            member_id,
+            promo_id
         } = req.body;
 
         // Validation
@@ -65,6 +67,37 @@ export const createBooking = () => async (req: Request, res: Response, next: Nex
         // In a real app, res.locals.user.id would be set by verifyToken middleware
         // Defaulting for demo if middleware not yet fully integrated
 
+        // 2.5 Handle Promotion
+        let validPromoId = null;
+        if (promo_id) {
+            const now = new Date();
+            const promo = await PromotionModel.findOne({
+                where: {
+                    promo_id: promo_id,
+                    is_active: 'A',
+                    promo_start_date: { [Op.lte]: now },
+                    promo_end_date: { [Op.gte]: now }
+                },
+                transaction
+            });
+
+            if (promo) {
+                // Check usage quota per user
+                const usageCount = await BookingModel.count({
+                    where: {
+                        member_id: member_id,
+                        promo_id: promo_id,
+                        booking_status: { [Op.ne]: 'C' }
+                    },
+                    transaction
+                });
+
+                if (usageCount < promo.usage_per_user) {
+                    validPromoId = promo_id;
+                }
+            }
+        }
+
         // 3. Create Booking
         const booking = await BookingModel.create({
             booking_id: nextBookingId,
@@ -73,7 +106,7 @@ export const createBooking = () => async (req: Request, res: Response, next: Nex
             is_review: 'N',
             member_id: member_id,
             payment_type_id: payment_type === 'PTH' ? 'P02' : 'P01',
-            promo_id: null
+            promo_id: validPromoId
         }, { transaction });
 
         // 4. Create Booking Detail

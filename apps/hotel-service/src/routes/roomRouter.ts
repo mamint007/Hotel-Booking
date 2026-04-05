@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { getRooms, getAdditionalCharges, validateCoupon, getReviews, getPromotions } from "../controller/roomController";
 import { getAllRoomTypes } from "../controller/adminController";
+import { verifyMemberToken } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
@@ -48,6 +49,7 @@ router.get(
 
 router.post(
     '/validate-coupon',
+    verifyMemberToken(),
     validateCoupon(),
     (req: Request, res: Response, next: NextFunction) => {
         res.locals.response = {
