@@ -1077,3 +1077,117 @@ export const removeBookingCharge = () => async (req: Request, res: Response, nex
         next(error);
     }
 }
+
+// ─── Additional Charges Master ────────────────────────────────────────────────
+
+export const getAllAdditionalCharges = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const charges = await AdditionalChargeModel.findAll({
+            order: [['charge_id', 'ASC']]
+        });
+
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Get All Additional Charges successfully',
+            data: charges
+        };
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const createAdditionalCharge = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { charge_name, charge_amount, charge_unit } = req.body;
+
+        if (!charge_name || charge_amount === undefined || !charge_unit) {
+            return res.status(400).json({ res_code: '0400', res_desc: 'charge_name, charge_amount, and charge_unit are required' });
+        }
+
+        // Generate ID
+        const lastCharge = await AdditionalChargeModel.findOne({ order: [['charge_id', 'DESC']] });
+        let nextId = 'C01';
+        if (lastCharge) {
+            const lastIdNum = parseInt(lastCharge.charge_id.substring(1));
+            if (!isNaN(lastIdNum)) {
+                nextId = `C${(lastIdNum + 1).toString().padStart(2, '0')}`;
+            }
+        }
+
+        const newCharge = await AdditionalChargeModel.create({
+            charge_id: nextId,
+            charge_name,
+            charge_amount,
+            charge_unit
+        });
+
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Create Additional Charge successfully',
+            data: newCharge
+        };
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const updateAdditionalCharge = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { charge_name, charge_amount, charge_unit } = req.body;
+
+        if (!id) {
+            return res.status(400).json({ res_code: '0400', res_desc: 'charge_id is required' });
+        }
+
+        const charge = await AdditionalChargeModel.findByPk(id);
+        if (!charge) {
+            return res.status(404).json({ res_code: '0404', res_desc: 'Additional charge not found' });
+        }
+
+        if (charge_name !== undefined) charge.charge_name = charge_name;
+        if (charge_amount !== undefined) charge.charge_amount = charge_amount;
+        if (charge_unit !== undefined) charge.charge_unit = charge_unit;
+
+        await charge.save();
+
+        res.locals.response = {
+            res_code: '0000',
+            res_desc: 'Update Additional Charge successfully',
+            data: charge
+        };
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const deleteAdditionalCharge = () => async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return res.status(400).json({ res_code: '0400', res_desc: 'charge_id is required' });
+        }
+
+        const charge = await AdditionalChargeModel.findByPk(id);
+        if (!charge) {
+            return res.status(404).json({ res_code: '0404', res_desc: 'Additional charge not found' });
+        }
+
+        // Check if charge is being used
+        const usageCount = await BookingAdditionalChargeModel.count({ where: { charge_id: id } });
+        if (usageCount > 0) {
+            return res.status(400).json({ res_code: '0400', res_desc: 'Cannot delete charge: it is being used in bookings.' });
+        }
+
+        await charge.destroy();
+
+        res.locals.response = { res_code: '0000', res_desc: 'Additional charge deleted successfully' };
+        next();
+    } catch (error) {
+        next(error);
+    }
+}

@@ -171,9 +171,9 @@ const ModalOverlay = styled.div`
 const ModalContent = styled.div`
   background: white;
   border-radius: 16px;
-  padding: 32px;
+  padding: 40px;
   width: 100%;
-  max-width: 800px;
+  max-width: 650px;
   position: relative;
   max-height: 90vh;
   overflow-y: auto;
@@ -203,7 +203,7 @@ const CloseButton = styled.button`
 `;
 
 const FormGroup = styled.div`
-  margin-bottom: 20px;
+  margin-bottom: 0;
 `;
 
 const Label = styled.label`
@@ -216,7 +216,8 @@ const Label = styled.label`
 
 const Input = styled.input`
   width: 100%;
-  padding: 10px 12px;
+  max-width: 280px;
+  padding: 10px 14px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 14px;
@@ -230,7 +231,8 @@ const Input = styled.input`
 
 const Select = styled.select`
   width: 100%;
-  padding: 10px 12px;
+  max-width: 280px;
+  padding: 10px 14px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 14px;
@@ -267,7 +269,7 @@ const SubmitButton = styled.button`
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 12px;
+  margin-top: 20px;
   transition: background-color 0.2s;
 
   &:hover {
@@ -283,7 +285,8 @@ const SubmitButton = styled.button`
 const FormGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  column-gap: 30px;
+  row-gap: 20px;
   
   @media (max-width: 768px) {
       grid-template-columns: 1fr;
@@ -313,7 +316,7 @@ export default function ManageEmployee() {
     const [formData, setFormData] = useState({
         emp_firstname: '',
         emp_lastname: '',
-        emp_sex: 'M',
+        emp_sex: '',
         emp_tel: '',
         emp_email: '',
         emp_password: '',
@@ -387,7 +390,7 @@ export default function ManageEmployee() {
                 setFormData({
                     emp_firstname: '',
                     emp_lastname: '',
-                    emp_sex: 'M',
+                    emp_sex: '',
                     emp_tel: '',
                     emp_email: '',
                     emp_password: '',
@@ -528,6 +531,7 @@ export default function ManageEmployee() {
                                                     value="M"
                                                     checked={formData.emp_sex === 'M'}
                                                     onChange={handleChange}
+                                                    required
                                                 />
                                                 Male
                                             </RadioLabel>
@@ -538,6 +542,7 @@ export default function ManageEmployee() {
                                                     value="F"
                                                     checked={formData.emp_sex === 'F'}
                                                     onChange={handleChange}
+                                                    required
                                                 />
                                                 Female
                                             </RadioLabel>

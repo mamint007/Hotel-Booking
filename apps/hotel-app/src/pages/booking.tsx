@@ -207,6 +207,7 @@ const Tag = styled.span`
 const OptionsContainer = styled.div`
   display: flex;
   gap: 24px;
+  align-items: flex-start;
 `;
 
 const OptionBox = styled.div`

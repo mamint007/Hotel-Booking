@@ -833,7 +833,7 @@ export default function BookPage() {
 
                       <DetailRow>
                         <Users size={14} />
-                        1 Room, {booking.number_of_guests || 2} people
+                        1 Room, {room?.max_guest || booking.number_of_guests || 2} people
                       </DetailRow>
                     </InfoSection>
                   </CardBody>

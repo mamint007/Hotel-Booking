@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction, Router } from 'express';
-import { login, getAllEmployees, getAllRooms, getAllRoomTypes, getAllBookings, getAllPayments, getAllPromotions, createEmployee, updateEmployeeStatus, deleteUser, updateRoomStatus, createRoom, updateRoom, deleteRoom, createRoomType, updateRoomType, deleteRoomType, getMe, createPromotion, updatePromotion, deletePromotion, getAllAmenities, updateBookingStatus, updatePaymentStatus, getBookingReport, getRoomOccupancyReport, getStayCharges, addBookingCharge, removeBookingCharge } from "../controller/adminController"
+import { login, getAllEmployees, getAllRooms, getAllRoomTypes, getAllBookings, getAllPayments, getAllPromotions, createEmployee, updateEmployeeStatus, deleteUser, updateRoomStatus, createRoom, updateRoom, deleteRoom, createRoomType, updateRoomType, deleteRoomType, getMe, createPromotion, updatePromotion, deletePromotion, getAllAmenities, updateBookingStatus, updatePaymentStatus, getBookingReport, getRoomOccupancyReport, getStayCharges, addBookingCharge, removeBookingCharge, getAllAdditionalCharges, createAdditionalCharge, updateAdditionalCharge, deleteAdditionalCharge } from "../controller/adminController"
 import { getAllUsers } from "../controller/userController"
 
 import { verifyAdminToken, verifyOwnerToken } from '../middleware/authMiddleware';
@@ -450,6 +450,46 @@ router.delete(
     '/stays/:stay_id/charges/:charge_id',
     verifyAdminToken(),
     removeBookingCharge(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.get(
+    '/additional-charges',
+    verifyAdminToken(),
+    getAllAdditionalCharges(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.post(
+    '/additional-charges',
+    verifyAdminToken(),
+    createAdditionalCharge(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.put(
+    '/additional-charges/:id',
+    verifyAdminToken(),
+    updateAdditionalCharge(),
+    (req: Request, res: Response, next: NextFunction) => {
+        res.json(res.locals.response)
+        next()
+    }
+)
+
+router.delete(
+    '/additional-charges/:id',
+    verifyAdminToken(),
+    deleteAdditionalCharge(),
     (req: Request, res: Response, next: NextFunction) => {
         res.json(res.locals.response)
         next()

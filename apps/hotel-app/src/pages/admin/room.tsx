@@ -189,7 +189,7 @@ const ModalContent = styled.div`
   border-radius: 16px;
   padding: 32px;
   width: 100%;
-  max-width: 800px;
+  max-width: 700px;
   position: relative;
   max-height: 90vh;
   overflow-y: auto;
@@ -219,7 +219,7 @@ const CloseButton = styled.button`
 `;
 
 const FormGroup = styled.div`
-  margin-bottom: 20px;
+  margin-bottom: 0px;
 `;
 
 const Label = styled.label`
@@ -231,7 +231,7 @@ const Label = styled.label`
 `;
 
 const Input = styled.input`
-  width: 100%;
+  width: 95%;
   padding: 10px 12px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
@@ -245,7 +245,7 @@ const Input = styled.input`
 `;
 
 const Select = styled.select`
-  width: 100%;
+  width: 95%;
   padding: 10px 12px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
@@ -269,7 +269,7 @@ const SubmitButton = styled.button`
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 12px;
+  margin-top: 20px;
   transition: background-color 0.2s;
 
   &:hover {

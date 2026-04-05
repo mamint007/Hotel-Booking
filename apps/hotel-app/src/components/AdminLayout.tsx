@@ -11,7 +11,8 @@ import {
     Flag,
     LogOut,
     LayoutDashboard,
-    FileText
+    FileText,
+    PlusCircle
 } from "lucide-react";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -166,6 +167,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeMenu = 'Repor
         { name: 'Booking', icon: CalendarDays, path: '/admin/booking' },
         { name: 'Payment', icon: CreditCard, path: '/admin/payment' },
         { name: 'Promotion', icon: Flag, path: '/admin/promotion' },
+        { name: 'Additional Charges', icon: PlusCircle, path: '/admin/additional-charges' },
     ].filter(item => !item.ownerOnly || isOwner);
 
     return (

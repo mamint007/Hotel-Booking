@@ -159,7 +159,20 @@ const FilterContainer = styled.div`
   border-radius: 8px;
   display: flex;
   flex-direction: column;
-  width: 100%;
+  width: 100px;
+  overflow: hidden;
+  
+  @media (min-width: 768px) {
+    flex-direction: row;
+  }
+`;
+
+const FilterContainer2 = styled.div`
+  background-color: white;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  width: 170px;
   overflow: hidden;
   
   @media (min-width: 768px) {
@@ -586,8 +599,8 @@ export default function Home() {
                 <BookingTitle>Reservations</BookingTitle>
               </Col>
 
-              <Col md={12} lg={8} style={{ paddingLeft: 0, paddingRight: 0, display: "flex", gap: "30px" }}>
-                <FilterContainer>
+              <Col md={12} lg={10} style={{ paddingLeft: 0, paddingRight: 0, display: "flex", gap: "30px", alignItems: "center", flexWrap: "wrap" }}>
+                <FilterContainer style={{ width: '40%', minWidth: '400px' }}>
                   {/* Check In */}
                   <FilterItem $borderRight as="label" htmlFor="check-in-input" style={{ cursor: 'pointer' }}>
                     <Calendar size={20} color="#9ca3af" />
@@ -623,7 +636,7 @@ export default function Home() {
                   </FilterItem>
                 </FilterContainer>
 
-                <FilterContainer>
+                <FilterContainer2>
                   {/* Guests */}
                   <FilterItem as="label" htmlFor="guests-select" style={{ cursor: 'pointer' }}>
                     <User size={20} color="#9ca3af" />
@@ -644,12 +657,9 @@ export default function Home() {
                       <FilterSubValue>Total Guests</FilterSubValue>
                     </div>
                   </FilterItem>
-                </FilterContainer>
+                </FilterContainer2>
 
-              </Col>
-
-              <Col md={12} lg={2}>
-                <CheckAvailabilityButton $variant="outline" onClick={handleSearch}>
+                <CheckAvailabilityButton $variant="outline" onClick={handleSearch} style={{ width: 'auto' }}>
                   Check Availability
                 </CheckAvailabilityButton>
               </Col>
