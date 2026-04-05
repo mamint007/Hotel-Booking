@@ -821,7 +821,6 @@ export default function BookPage() {
                       <RoomName>
                         {room?.room_type?.room_type_name || 'Room'} {room?.room_number}, {room?.bed_type === 'S' ? 'Single' : 'Double'} Beds
                       </RoomName>
-                      <LinkText>More Details</LinkText>
 
                       <DetailRow>
                         <Calendar size={14} />
@@ -836,8 +835,6 @@ export default function BookPage() {
                         <Users size={14} />
                         1 Room, {booking.number_of_guests || 2} people
                       </DetailRow>
-
-                      <LinkText style={{ marginTop: '8px' }}>Edit Booking Details</LinkText>
                     </InfoSection>
                   </CardBody>
 

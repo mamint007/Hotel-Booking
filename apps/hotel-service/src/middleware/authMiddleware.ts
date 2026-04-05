@@ -28,7 +28,7 @@ export const verifyAdminToken = () => (req: Request, res: Response, next: NextFu
             }
 
             // Check for specific admin claims if needed
-            if (decoded.role !== 'Owner' && decoded.role !== 'Admin') { // Example roles
+            if (decoded.role !== 'Owner' && decoded.role !== 'Admin' && decoded.role !== 'Employee') { // Example roles
                 // Could create a specific Forbidden error, but reusing login fail or 403 is okay
                 return next(new ServiceError(AdminMasterError.ERR_ADMIN_LOGIN_FAIL))
             }

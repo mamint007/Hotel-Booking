@@ -295,8 +295,18 @@ export default function AdminReport() {
         if (adminUserStr) {
             try {
                 const adminUser = JSON.parse(adminUserStr);
-                if (adminUser.role?.role_name !== 'Owner') {
-                    // Redirect non-owners to booking page or another safe page
+                // Allow Owner, Admin, and Employee to enter admin portal
+                const allowedRoles = ['Owner', 'Admin', 'Employee'];
+                if (!allowedRoles.includes(adminUser.role?.role_name)) {
+                    // Redirect unauthorized users
+                    router.push('/admin/login');
+                    return;
+                }
+                
+                // If not Owner, they might be redirected from specifically the Report content
+                // but let's allow them to "enter" the dashboard first.
+                // Or if you want them to land on Bookings if not Owner:
+                if (adminUser.role?.role_name === 'Employee') {
                     router.push('/admin/booking');
                     return;
                 }

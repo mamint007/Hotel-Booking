@@ -510,7 +510,6 @@ export default function BookingPage() {
                     <RoomTitle>{room.room_type?.room_type_name} {room.room_number}</RoomTitle>
                     <RoomMeta>
                       <span>1 Room, {room.max_guest} People</span>
-                      <span style={{ textDecoration: 'underline', cursor: 'pointer' }}>Edit Booking Details</span>
                     </RoomMeta>
                     <TagList>
                       {room.amenities?.map((amenity: any, index: number) => (
@@ -566,7 +565,7 @@ export default function BookingPage() {
                         name="pay"
                         checked={paymentType === 'PAY'}
                         onChange={() => setPaymentType('PAY')}
-                      /> Pay Now
+                      /> Full Payment
                     </CheckboxItem>
                     <CheckboxItem>
                       <input
@@ -574,7 +573,7 @@ export default function BookingPage() {
                         name="pay"
                         checked={paymentType === 'PTH'}
                         onChange={() => setPaymentType('PTH')}
-                      /> Pay at Hotel
+                      /> Deposit
                     </CheckboxItem>
                   </CheckboxList>
                 </OptionBox>
@@ -614,7 +613,7 @@ export default function BookingPage() {
                 <SummaryTitle>Proprietary Summary</SummaryTitle>
                 <PriceRow>
                   <span>Payment Type</span>
-                  <span>{paymentType === 'PAY' ? 'Pay Now' : 'Pay at Hotel'}</span>
+                  <span>{paymentType === 'PAY' ? 'Full Payment' : 'Deposit'}</span>
                 </PriceRow>
                 <PriceRow>
                   <span>Room Price ({nights} Night{nights > 1 ? 's' : ''})</span>

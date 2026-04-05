@@ -277,11 +277,7 @@ export default function Payment() {
                                                         {statusOptions.find(opt => opt.value === p.payment_status)?.label || (p.payment_status === 'F' ? 'Cancelled' : 'Pending')}
                                                         <ChevronDown size={14} />
                                                     </StatusBadge>
-                                                    {p.booking && p.booking.booking_status !== p.payment_status && (
-                                                        <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '4px' }}>
-                                                            Booking: {statusOptions.find(opt => opt.value === p.booking?.booking_status)?.label || p.booking.booking_status}
-                                                        </div>
-                                                    )}
+
                                                     <DropdownContent show={openDropdownId === p.payment_id}>
                                                         {statusOptions.map(opt => (
                                                             <DropdownItem
